@@ -108,6 +108,18 @@
     }
     .lang-btn.active { background: var(--sage); color: white; }
 
+    .bubble.ai.streaming-bubble::after {
+      content: '▋';
+      display: inline-block;
+      color: var(--sage);
+      animation: blink 0.7s step-end infinite;
+      margin-left: 2px;
+      font-size: 0.85em;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; } 50% { opacity: 0; }
+    }
+
     /* ─── MOOD BAR ─── */
     .mood-bar {
       position: relative; z-index: 10; flex-shrink: 0;
@@ -805,10 +817,11 @@ let busy = false;
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
-// Ambil userId dari Telegram, fallback null (proxy akan pakai IP)
+// Ambil userId dan initData dari Telegram, fallback null
 const userId = tg?.initDataUnsafe?.user?.id
   ? String(tg.initDataUnsafe.user.id)
   : null;
+const initData = tg?.initData || null;
 
 window.onload = () => {
   // Apply saved language
@@ -827,7 +840,7 @@ window.onload = () => {
   }
 };
 
-// ─── SEND ────────────────────────────────────────────────
+// ─── SEND (STREAMING) ────────────────────────────────────
 async function send() {
   const inp = document.getElementById('inp');
   const text = inp.value.trim();
@@ -846,6 +859,7 @@ async function send() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        initData,
         userId,
         messages: [
           { role: 'system', content: T[lang].systemPrompt },
@@ -858,13 +872,43 @@ async function send() {
       const data = await res.json();
       throw new Error(data.error || `Error ${res.status}`);
     }
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
 
-    const reply = data.choices?.[0]?.message?.content || T[lang].noReply;
-    history.push({ role: 'assistant', content: reply });
+    // ── Streaming ──
     hideTyping();
-    addAI(reply, getQuickReplies(text));
+    const bubble = addAIStreaming(); // buat bubble kosong dulu
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // simpan baris terakhir yang belum lengkap
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+
+        try {
+          const json = JSON.parse(data);
+          const delta = json.choices?.[0]?.delta?.content;
+          if (delta) {
+            fullText += delta;
+            bubble.innerHTML = fullText.replace(/\n/g, '<br>');
+            scrollBottom();
+          }
+        } catch { /* skip invalid JSON */ }
+      }
+    }
+
+    history.push({ role: 'assistant', content: fullText });
+    // Tambah quick replies setelah streaming selesai
+    addQuickRepliesAfter(bubble, getQuickReplies(text));
 
   } catch (err) {
     hideTyping();
@@ -873,6 +917,41 @@ async function send() {
   }
 
   busy = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+// Buat bubble AI kosong untuk streaming, return elemen bubble-nya
+function addAIStreaming() {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai';
+  wrap.innerHTML = `
+    <div class="ai-row">
+      <div class="ai-mini-avatar">🌿</div>
+      <div class="bubble ai streaming-bubble"></div>
+    </div>
+    <div class="bubble-time" style="padding-left:36px">${now()}</div>
+  `;
+  chat.appendChild(wrap);
+  scrollBottom();
+  return wrap.querySelector('.streaming-bubble');
+}
+
+// Tambahkan quick replies setelah bubble selesai
+function addQuickRepliesAfter(bubble, qr) {
+  if (!qr.length) return;
+  const wrap = bubble.closest('.msg-wrap');
+  const qrDiv = document.createElement('div');
+  qrDiv.className = 'quick-replies';
+  qr.forEach(q => {
+    const btn = document.createElement('button');
+    btn.className = 'qr-btn';
+    btn.textContent = q;
+    btn.onclick = () => { document.getElementById('inp').value = q; qrDiv.remove(); send(); };
+    qrDiv.appendChild(btn);
+  });
+  wrap.appendChild(qrDiv);
+  scrollBottom();
 }
 
 // ─── ADD MESSAGES ────────────────────────────────────────
