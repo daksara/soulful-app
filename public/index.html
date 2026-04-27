@@ -114,11 +114,8 @@
       background: rgba(245,241,235,0.9);
       padding: 9px 14px;
       border-bottom: 1px solid rgba(107,158,120,0.08);
-      display: flex; gap: 7px;
-      overflow-x: auto; -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
+      display: flex; flex-wrap: wrap; gap: 7px;
     }
-    .mood-bar::-webkit-scrollbar { display: none; }
 
     .chip {
       flex-shrink: 0;
@@ -718,7 +715,7 @@ FORMAT: 2-3 paragraf pendek, akhiri dengan 1 pertanyaan reflektif.`,
   en: {
     headerSub: 'Your mental wellness companion',
     placeholder: 'Share how you feel...',
-    disclaimer: '🌿 Soulful is an AI companion, <strong>not a replacement for a professional therapist</strong>. If you are in crisis, please call <strong>988 Suicide & Crisis Lifeline: 988</strong>',
+    disclaimer: '🌿 Soulful is an AI companion, <strong>not a replacement for a professional therapist</strong>. Please seek professional help if you need it.',
     welcome: 'Hello 🌿 I\'m Soulful, your safe space to talk.\n\nThis is a judgment-free zone — share anything you\'re feeling. I\'m here to listen.\n\nHow are you feeling right now?',
     welcomeQR: ['I want to talk...', 'Teach me relaxation techniques', 'I need motivation today', 'I\'m feeling very anxious'],
     noReply: 'Sorry, no response received.',
@@ -750,7 +747,7 @@ FORMAT: 2-3 paragraf pendek, akhiri dengan 1 pertanyaan reflektif.`,
 Listen attentively without judgment. Always validate the user's feelings first.
 Use simple CBT approaches. Provide practical techniques: deep breathing, grounding, journaling.
 Use warm, gentle English. Do NOT diagnose any mental conditions.
-If there are danger signs, refer to: 988 Suicide & Crisis Lifeline (call or text 988).
+If there are danger signs, advise the user to seek professional help immediately.
 FORMAT: 2-3 short paragraphs, end with 1 reflective question.`,
   }
 };
