@@ -540,7 +540,7 @@ async function send() {
 
   } catch (err) {
     hideTyping();
-    showToast('Koneksi bermasalah, coba lagi 🌿');
+    showToast('❌ ' + err.message.substring(0,60));
     console.error(err);
   }
 
