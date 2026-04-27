@@ -1,185 +1,1150 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Soulful — Teman Cerita</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --sage: #6b9e78;
+      --sage-light: #9fc4a8;
+      --sage-dark: #3d6b4a;
+      --cream: #f5f1eb;
+      --warm: #ede6db;
+      --peach: #f0cdb0;
+      --text: #3a322c;
+      --text-soft: #7d7269;
+      --white: #ffffff;
+      --shadow-sm: 0 2px 10px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
-      font-family: sans-serif;
-      margin: 0;
-      background: #f5f5f5;
+      font-family: 'Nunito', sans-serif;
+      background: var(--cream);
+      color: var(--text);
       display: flex;
       flex-direction: column;
       height: 100vh;
+      height: -webkit-fill-available;
     }
 
-    #chat {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px;
+    /* Bg pattern */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse at top left, rgba(107,158,120,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at bottom right, rgba(240,205,176,0.1) 0%, transparent 55%);
+      pointer-events: none;
     }
 
-    .msg {
-      margin: 8px 0;
-      padding: 10px;
-      border-radius: 10px;
-      max-width: 70%;
+    /* ─── HEADER ─── */
+    .header {
+      position: relative; z-index: 20;
+      background: rgba(245,241,235,0.96);
+      backdrop-filter: blur(12px);
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 11px;
+      border-bottom: 1px solid rgba(107,158,120,0.13);
+      flex-shrink: 0;
     }
 
-    .user {
-      background: #d1e7dd;
-      margin-left: auto;
+    .avatar-wrap { position: relative; }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, #9fc4a8 0%, #6b9e78 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 3px 12px rgba(107,158,120,0.35);
+    }
+    .online-dot {
+      position: absolute; bottom: 1px; right: 1px;
+      width: 11px; height: 11px; border-radius: 50%;
+      background: #4caf72; border: 2px solid var(--cream);
+      animation: pulse-green 2s infinite;
     }
 
-    .ai {
-      background: #fff;
-      margin-right: auto;
+    .header-text { flex: 1; }
+    .header-name {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem; font-weight: 600;
+      color: var(--text); letter-spacing: 0.01em;
+    }
+    .header-sub {
+      font-size: 0.7rem; color: var(--sage-dark);
+      display: flex; align-items: center; gap: 4px; margin-top: 1px;
     }
 
-    #inputArea {
-      display: flex;
-      padding: 10px;
-      background: #fff;
-      border-top: 1px solid #ccc;
+    .header-badge {
+      background: rgba(107,158,120,0.12);
+      border: 1px solid rgba(107,158,120,0.25);
+      border-radius: 20px; padding: 3px 10px;
+      font-size: 0.68rem; color: var(--sage-dark); font-weight: 600;
+      letter-spacing: 0.04em;
     }
 
-    #inp {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    .lang-toggle {
+      display: flex; align-items: center;
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      border-radius: 20px; overflow: hidden;
+      box-shadow: var(--shadow-sm); flex-shrink: 0;
+    }
+    .lang-btn {
+      border: none; background: transparent; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-size: 0.68rem; font-weight: 700;
+      color: var(--text-soft); padding: 4px 10px;
+      transition: all 0.18s; letter-spacing: 0.03em;
+    }
+    .lang-btn.active { background: var(--sage); color: white; }
+
+    /* ─── MOOD BAR ─── */
+    .mood-bar {
+      position: relative; z-index: 10; flex-shrink: 0;
+      background: rgba(245,241,235,0.9);
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(107,158,120,0.08);
+      display: flex; flex-wrap: wrap; gap: 7px;
     }
 
-    #sendBtn {
-      margin-left: 10px;
-      padding: 10px 15px;
-      border: none;
-      background: #4CAF50;
+    .chip {
+      flex-shrink: 0;
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.18);
+      border-radius: 20px; padding: 5px 13px;
+      font-size: 0.75rem; font-family: 'Nunito', sans-serif;
+      color: var(--text-soft); cursor: pointer;
+      transition: all 0.18s ease; white-space: nowrap;
+      box-shadow: var(--shadow-sm);
+    }
+    .chip:active, .chip.active {
+      background: rgba(107,158,120,0.12);
+      border-color: var(--sage);
+      color: var(--sage-dark); font-weight: 600;
+      transform: scale(0.97);
+    }
+
+    /* ─── CHAT ─── */
+    .chat {
+      flex: 1; overflow-y: auto;
+      padding: 14px 13px 6px;
+      display: flex; flex-direction: column; gap: 13px;
+      position: relative; z-index: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chat::-webkit-scrollbar { width: 3px; }
+    .chat::-webkit-scrollbar-thumb { background: rgba(107,158,120,0.25); border-radius: 2px; }
+
+    /* disclaimer */
+    .disclaimer {
+      background: rgba(240,205,176,0.3);
+      border: 1px solid rgba(240,205,176,0.6);
+      border-radius: 14px; padding: 10px 14px;
+      font-size: 0.73rem; color: var(--text-soft);
+      line-height: 1.55; text-align: center;
+      align-self: center; max-width: 88%;
+    }
+    .disclaimer strong { color: var(--text); }
+
+    /* message wrap */
+    .msg-wrap {
+      display: flex; flex-direction: column;
+      animation: fadeUp 0.28s ease;
+    }
+    .msg-wrap.user { align-items: flex-end; }
+    .msg-wrap.ai { align-items: flex-start; }
+
+    .ai-row { display: flex; align-items: flex-end; gap: 8px; }
+    .ai-mini-avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #9fc4a8, #6b9e78);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; box-shadow: 0 2px 8px rgba(107,158,120,0.3);
+    }
+
+    .bubble {
+      max-width: 80%; padding: 11px 15px;
+      font-size: 0.875rem; line-height: 1.65;
+      border-radius: 20px;
+    }
+    .bubble.user {
+      background: linear-gradient(135deg, #6b9e78, #4a7a55);
       color: white;
-      border-radius: 8px;
-      cursor: pointer;
+      border-bottom-right-radius: 5px;
+      box-shadow: 0 3px 14px rgba(107,158,120,0.38);
     }
+    .bubble.ai {
+      background: var(--white);
+      color: var(--text);
+      border-bottom-left-radius: 5px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(107,158,120,0.1);
+    }
+
+    .bubble-time {
+      font-size: 0.62rem; color: var(--text-soft);
+      margin-top: 3px; padding: 0 5px;
+    }
+
+    /* quick replies */
+    .quick-replies {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-top: 6px; padding-left: 36px;
+    }
+    .qr-btn {
+      background: rgba(107,158,120,0.09);
+      border: 1px solid rgba(107,158,120,0.28);
+      border-radius: 14px; padding: 5px 13px;
+      font-size: 0.76rem; color: var(--sage-dark);
+      cursor: pointer; font-family: 'Nunito', sans-serif;
+      transition: all 0.15s;
+    }
+    .qr-btn:active { background: rgba(107,158,120,0.18); transform: scale(0.97); }
+
+    /* typing */
+    .typing-wrap { display: flex; align-items: flex-end; gap: 8px; }
+    .typing-bubble {
+      background: var(--white); border: 1px solid rgba(107,158,120,0.1);
+      border-radius: 20px; border-bottom-left-radius: 5px;
+      padding: 12px 16px; display: flex; gap: 5px; align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--sage-light);
+      animation: bounce 1.1s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.18s; }
+    .dot:nth-child(3) { animation-delay: 0.36s; }
+
+    /* ─── INPUT ─── */
+    .input-area {
+      position: relative; z-index: 20; flex-shrink: 0;
+      background: rgba(245,241,235,0.97);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(107,158,120,0.12);
+      padding: 10px 12px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      display: flex; align-items: flex-end; gap: 9px;
+    }
+
+    .textarea-wrap {
+      flex: 1;
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      border-radius: 22px; padding: 9px 14px;
+      display: flex; align-items: flex-end;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s;
+    }
+    .textarea-wrap:focus-within { border-color: var(--sage); }
+
+    textarea {
+      flex: 1; border: none; outline: none;
+      background: transparent;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem; color: var(--text);
+      resize: none; line-height: 1.5;
+      min-height: 22px; max-height: 110px;
+      overflow-y: auto;
+    }
+    textarea::placeholder { color: #b8aea6; }
+
+    .send-btn {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; transition: all 0.18s;
+      background: linear-gradient(135deg, #6b9e78, #4a7a55);
+      box-shadow: 0 3px 14px rgba(107,158,120,0.4);
+    }
+    .send-btn:disabled {
+      background: #d5cfc9; box-shadow: none; cursor: not-allowed;
+    }
+    .send-btn:not(:disabled):active { transform: scale(0.93); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30%           { transform: translateY(-5px); }
+    }
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(76,175,114,0.4); }
+      50%       { opacity: 0.85; box-shadow: 0 0 0 4px rgba(76,175,114,0); }
+    }
+
+    /* ─── DONASI BANNER ─── */
+    .donasi-banner {
+      position: relative; z-index: 10; flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(240,205,176,0.5), rgba(245,220,195,0.4));
+      border-bottom: 1px solid rgba(240,175,120,0.2);
+      padding: 8px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .donasi-text { flex: 1; font-size: 0.75rem; color: var(--text-soft); line-height: 1.4; }
+    .donasi-text strong { color: #a0522d; font-size: 0.78rem; }
+    .donasi-btn {
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #f4a460, #cd7f32);
+      color: white; border: none; border-radius: 20px;
+      padding: 7px 14px; font-size: 0.75rem; font-weight: 700;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer; white-space: nowrap;
+      box-shadow: 0 3px 10px rgba(205,127,50,0.35);
+      transition: all 0.18s;
+    }
+    .donasi-btn:active { transform: scale(0.96); }
+    .donasi-close {
+      font-size: 14px; color: var(--text-soft);
+      cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+    }
+
+    /* ─── DONASI MODAL ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(58,50,44,0.5);
+      backdrop-filter: blur(4px);
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--cream);
+      border-radius: 24px 24px 0 0;
+      padding: 24px 22px 32px;
+      width: 100%; max-width: 480px;
+      animation: slideUp 0.3s ease;
+    }
+    .modal-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: rgba(107,158,120,0.3);
+      margin: 0 auto 20px;
+    }
+    .modal-title {
+      font-family: 'Lora', serif;
+      font-size: 1.2rem; font-weight: 600;
+      color: var(--text); text-align: center; margin-bottom: 6px;
+    }
+    .modal-sub {
+      font-size: 0.8rem; color: var(--text-soft);
+      text-align: center; line-height: 1.5; margin-bottom: 20px;
+    }
+    .amount-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-bottom: 16px;
+    }
+    .amount-btn {
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      border-radius: 12px; padding: 10px 6px;
+      text-align: center; cursor: pointer;
+      transition: all 0.15s; font-family: 'Nunito', sans-serif;
+    }
+    .amount-btn .nominal { font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; }
+    .amount-btn .label { font-size: 0.65rem; color: var(--text-soft); }
+    .amount-btn:active, .amount-btn.selected {
+      border-color: var(--sage); background: rgba(107,158,120,0.08);
+    }
+    .amount-btn.selected .nominal { color: var(--sage-dark); }
+
+    .saweria-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #f4a460, #cd7f32);
+      color: white; border: none; border-radius: 16px;
+      padding: 14px; font-size: 0.95rem; font-weight: 700;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(205,127,50,0.4);
+      transition: all 0.18s; margin-bottom: 10px;
+    }
+    .saweria-btn:active { transform: scale(0.98); }
+
+    .modal-note {
+      font-size: 0.68rem; color: var(--text-soft);
+      text-align: center; line-height: 1.5;
+    }
+    .modal-note a { color: var(--sage-dark); }
+
+    /* ─── ERROR TOAST ─── */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: #e57373; color: white; border-radius: 12px;
+      padding: 10px 20px; font-size: 0.8rem; z-index: 999;
+      animation: fadeUp 0.3s ease;
+      box-shadow: 0 4px 15px rgba(229,115,115,0.4);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ─── BREATHING MODAL ─── */
+    .breath-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(58,50,44,0.55);
+      backdrop-filter: blur(6px);
+      align-items: flex-end; justify-content: center;
+    }
+    .breath-overlay.open { display: flex; }
+
+    .breath-modal {
+      background: linear-gradient(160deg, #e8f5ec 0%, var(--cream) 100%);
+      border-radius: 28px 28px 0 0;
+      padding: 28px 24px 40px;
+      width: 100%; max-width: 480px;
+      animation: slideUp 0.35s ease;
+      text-align: center;
+    }
+    .breath-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: rgba(107,158,120,0.3);
+      margin: 0 auto 22px;
+    }
+    .breath-title {
+      font-family: 'Lora', serif;
+      font-size: 1.15rem; font-weight: 600;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .breath-sub {
+      font-size: 0.78rem; color: var(--text-soft);
+      margin-bottom: 28px; line-height: 1.5;
+    }
+
+    /* Circle animation */
+    .breath-ring-wrap {
+      position: relative;
+      width: 190px; height: 190px;
+      margin: 0 auto 24px;
+    }
+    .breath-ring {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(107,158,120,0.18) 0%, rgba(107,158,120,0.06) 70%);
+      border: 2.5px solid rgba(107,158,120,0.35);
+      transform: scale(0.72);
+      transition: transform 4s cubic-bezier(0.4,0,0.2,1),
+                  background 4s ease,
+                  border-color 4s ease;
+    }
+    .breath-ring.inhale {
+      transform: scale(1);
+      background: radial-gradient(circle, rgba(107,158,120,0.32) 0%, rgba(107,158,120,0.1) 70%);
+      border-color: rgba(107,158,120,0.7);
+    }
+    .breath-ring.hold {
+      transform: scale(1);
+      background: radial-gradient(circle, rgba(107,158,120,0.28) 0%, rgba(107,158,120,0.08) 70%);
+      border-color: rgba(107,158,120,0.5);
+      transition: transform 0.3s ease, background 0.5s ease, border-color 0.5s ease;
+    }
+    .breath-ring.exhale {
+      transform: scale(0.72);
+      background: radial-gradient(circle, rgba(159,196,168,0.12) 0%, rgba(107,158,120,0.04) 70%);
+      border-color: rgba(107,158,120,0.25);
+    }
+
+    .breath-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4px;
+    }
+    .breath-phase {
+      font-family: 'Lora', serif;
+      font-size: 1rem; font-weight: 600;
+      color: var(--sage-dark);
+      transition: opacity 0.4s ease;
+    }
+    .breath-count {
+      font-size: 2rem; font-weight: 700;
+      color: var(--sage); line-height: 1;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    /* Pattern selector */
+    .breath-patterns {
+      display: flex; gap: 8px; justify-content: center;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .pattern-btn {
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      border-radius: 14px; padding: 6px 14px;
+      font-size: 0.73rem; font-family: 'Nunito', sans-serif;
+      color: var(--text-soft); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pattern-btn.active {
+      border-color: var(--sage);
+      background: rgba(107,158,120,0.1);
+      color: var(--sage-dark); font-weight: 700;
+    }
+
+    /* Cycles counter */
+    .breath-cycles {
+      font-size: 0.72rem; color: var(--text-soft);
+      margin-bottom: 18px;
+    }
+    .breath-cycles span { color: var(--sage-dark); font-weight: 700; }
+
+    /* Controls */
+    .breath-controls { display: flex; gap: 10px; justify-content: center; }
+    .breath-start-btn {
+      background: linear-gradient(135deg, #6b9e78, #4a7a55);
+      color: white; border: none; border-radius: 22px;
+      padding: 13px 36px; font-size: 0.9rem; font-weight: 700;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(107,158,120,0.4);
+      transition: all 0.18s;
+    }
+    .breath-start-btn:active { transform: scale(0.97); }
+    .breath-close-btn {
+      background: rgba(107,158,120,0.08);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      color: var(--text-soft); border-radius: 22px;
+      padding: 13px 22px; font-size: 0.9rem;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .breath-close-btn:active { transform: scale(0.97); }
   </style>
 </head>
-
 <body>
 
-<div id="chat"></div>
-
-<div id="inputArea">
-  <input id="inp" placeholder="Tulis pesan..." />
-  <button id="sendBtn" onclick="send()">Kirim</button>
+<!-- HEADER -->
+<div class="header">
+  <div class="avatar-wrap">
+    <div class="avatar">🌿</div>
+    <div class="online-dot"></div>
+  </div>
+  <div class="header-text">
+    <div class="header-name">Soulful</div>
+    <div class="header-sub">Teman cerita & kesehatan mental</div>
+  </div>
+  <div class="header-badge">AI GRATIS</div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btnID" onclick="setLang('id')">ID</button>
+    <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
+  </div>
 </div>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-const tg = window.Telegram?.WebApp;
-tg?.expand();
+<!-- MOOD CHIPS -->
+<div class="mood-bar" id="moodBar">
+  <div class="chip" onclick="useMood(this, getLangText('moodAnxious'))">😰 <span data-id="Cemas" data-en="Anxious">Cemas</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodSad'))">😢 <span data-id="Sedih" data-en="Sad">Sedih</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodBurnout'))">😮‍💨 <span data-id="Burnout" data-en="Burnout">Burnout</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodSleep'))">🌙 <span data-id="Sulit Tidur" data-en="Can't Sleep">Sulit Tidur</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodLonely'))">🫂 <span data-id="Kesepian" data-en="Lonely">Kesepian</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodFrust'))">😤 <span data-id="Frustrasi" data-en="Frustrated">Frustrasi</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodMotiv'))">✨ <span data-id="Motivasi" data-en="Motivation">Motivasi</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodOverwhelm'))">🌀 <span data-id="Overwhelmed" data-en="Overwhelmed">Overwhelmed</span></div>
+  <div class="chip" onclick="openBreath()">🫁 <span data-id="Relaksasi" data-en="Breathe">Relaksasi</span></div>
+</div>
 
+<!-- DONASI BANNER -->
+<div class="donasi-banner" id="donasBanner">
+  <div style="font-size:20px">☕</div>
+  <div class="donasi-text">
+    <strong data-id="Soulful gratis untuk semua!" data-en="Soulful is free for everyone!">Soulful gratis untuk semua!</strong><br>
+    <span data-id="Bantu kami tetap beroperasi dengan donasi kecil 🌿" data-en="Help us stay running with a small donation 🌿">Bantu kami tetap beroperasi dengan donasi kecil 🌿</span>
+  </div>
+  <button class="donasi-btn" onclick="openModal()" data-id="Traktir" data-en="Support">Traktir</button>
+  <span class="donasi-close" onclick="closeBanner()">✕</span>
+</div>
+
+<!-- DONASI MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;font-size:36px;margin-bottom:8px">☕</div>
+    <div class="modal-title">Traktir Soulful Kopi</div>
+    <div class="modal-sub">
+      Donasimu membantu Soulful tetap gratis untuk semua orang.<br>
+      Terima kasih sudah peduli! 🌿
+    </div>
+
+    <div class="amount-grid">
+      <div class="amount-btn selected" onclick="selectAmount(this, 5000)">
+        <span class="nominal">Rp 5rb</span>
+        <span class="label">Segelas teh 🍵</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 10000)">
+        <span class="nominal">Rp 10rb</span>
+        <span class="label">Secangkir kopi ☕</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 20000)">
+        <span class="nominal">Rp 20rb</span>
+        <span class="label">Kopi + cemilan 🍪</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 50000)">
+        <span class="nominal">Rp 50rb</span>
+        <span class="label">Super supporter 🌟</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 100000)">
+        <span class="nominal">Rp 100rb</span>
+        <span class="label">Hero Soulful 🦸</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 0)">
+        <span class="nominal">Bebas</span>
+        <span class="label">Nominal lain 💛</span>
+      </div>
+    </div>
+
+    <button class="saweria-btn" onclick="goSaweria()">
+      ☕ Donasi via Saweria
+    </button>
+    <div class="modal-note">
+      Kamu akan diarahkan ke halaman Saweria yang aman.<br>
+      Ganti <strong>namasaweriamu</strong> di kode dengan username Saweria kamu.<br>
+      <a href="https://saweria.co" target="_blank">Daftar Saweria gratis →</a>
+    </div>
+  </div>
+</div>
+
+
+<!-- BREATHING MODAL -->
+<div class="breath-overlay" id="breathOverlay" onclick="closeBreathOutside(event)">
+  <div class="breath-modal">
+    <div class="breath-handle"></div>
+    <div class="breath-title" id="breathTitle">Napas Dalam</div>
+    <div class="breath-sub" id="breathSub">Ikuti irama lingkaran untuk menenangkan pikiran</div>
+
+    <div class="breath-patterns">
+      <button class="pattern-btn active" onclick="setPattern(this,'4-4-4')" id="pat1">4-4-4</button>
+      <button class="pattern-btn" onclick="setPattern(this,'4-7-8')" id="pat2">4-7-8</button>
+      <button class="pattern-btn" onclick="setPattern(this,'box')" id="pat3" id="patBox">Box</button>
+    </div>
+
+    <div class="breath-ring-wrap">
+      <div class="breath-ring" id="breathRing"></div>
+      <div class="breath-center">
+        <div class="breath-phase" id="breathPhase">Siap</div>
+        <div class="breath-count" id="breathCount">—</div>
+      </div>
+    </div>
+
+    <div class="breath-cycles" id="breathCycles">Siklus: <span id="cycleCount">0</span></div>
+
+    <div class="breath-controls">
+      <button class="breath-start-btn" id="breathStartBtn" onclick="toggleBreath()">Mulai</button>
+      <button class="breath-close-btn" onclick="closeBreath()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="chat" id="chat">
+  <div class="disclaimer" id="disclaimer">
+    🌿 Soulful adalah teman bicara AI, <strong>bukan pengganti psikolog profesional</strong>.
+    Jika kamu dalam krisis, hubungi <strong>Into The Light: 119 ext 8</strong>
+  </div>
+</div>
+
+<!-- INPUT -->
+<div class="input-area">
+  <div class="textarea-wrap">
+    <textarea id="inp" placeholder="Ceritakan perasaanmu..." rows="1"
+      oninput="onType(this)" onkeydown="onKey(event)"></textarea>
+  </div>
+  <button class="send-btn" id="sendBtn" onclick="send()" disabled>
+    <span style="color:white;line-height:1">↑</span>
+  </button>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+// API Key disimpan aman di Vercel Environment Variables
+// Frontend hanya memanggil /api/chat (proxy internal)
+
+// ─── LANGUAGE ─────────────────────────────────────────────
+let lang = localStorage.getItem('soulful_lang') || 'id';
+
+const T = {
+  id: {
+    headerSub: 'Teman cerita & kesehatan mental',
+    placeholder: 'Ceritakan perasaanmu...',
+    disclaimer: '🌿 Soulful adalah teman bicara AI, <strong>bukan pengganti psikolog profesional</strong>. Jika kamu dalam krisis, hubungi <strong>Into The Light: 119 ext 8</strong>',
+    welcome: 'Halo 🌿 Aku Soulful, teman cerita kamu.\n\nRuang ini aman — ceritakan apapun yang kamu rasakan tanpa takut dihakimi. Aku di sini untuk mendengarkan.\n\nBagaimana perasaanmu sekarang?',
+    welcomeQR: ['Aku mau cerita...', 'Ajari teknik relaksasi', 'Aku butuh semangat hari ini', 'Aku lagi sangat cemas'],
+    noReply: 'Maaf, tidak ada respons.',
+    modalTitle: 'Traktir Soulful Kopi',
+    modalSub: 'Donasimu membantu Soulful tetap gratis untuk semua orang.\nTerima kasih sudah peduli! 🌿',
+    saweriaBtn: '☕ Donasi via Saweria',
+    modalNote: 'Kamu akan diarahkan ke halaman Saweria yang aman.',
+    thankYou: 'Terima kasih banyak sudah mendukung Soulful! 💛☕\n\nDonasimu membantu kami tetap gratis untuk semua orang yang membutuhkan dukungan mental. Kamu luar biasa! 🌿',
+    moodAnxious: 'Aku merasa sangat cemas hari ini',
+    moodSad: 'Aku merasa sangat sedih dan tidak tahu kenapa',
+    moodBurnout: 'Aku kelelahan dan burnout karena pekerjaan',
+    moodSleep: 'Aku susah tidur dan pikiranku tidak bisa tenang',
+    moodLonely: 'Aku merasa sangat kesepian',
+    moodFrust: 'Aku merasa marah dan frustrasi',
+    moodMotiv: 'Aku butuh motivasi untuk melanjutkan hari ini',
+    moodOverwhelm: 'Aku merasa overwhelmed dengan banyak hal',
+    breathTitle: 'Napas Dalam',
+    breathSub: 'Ikuti irama lingkaran untuk menenangkan pikiran',
+    breathInhale: 'Tarik Napas',
+    breathHold: 'Tahan',
+    breathExhale: 'Hembuskan',
+    breathReady: 'Siap',
+    breathStart: 'Mulai',
+    breathStop: 'Berhenti',
+    breathClose: 'Tutup',
+    breathCycles: 'Siklus:',
+    breathDone: 'Bagus sekali! 🌿 Kamu telah menyelesaikan latihan napas dalam.\n\nBagaimana perasaanmu sekarang?',
+    systemPrompt: `Kamu adalah Soulful, AI pendamping kesehatan mental yang hangat dan empatik.
+Dengarkan dengan penuh perhatian tanpa menghakimi. Validasi perasaan pengguna terlebih dahulu.
+Gunakan pendekatan CBT sederhana. Berikan teknik praktis: napas dalam, grounding, journaling.
+Bahasa Indonesia yang hangat dan lembut. JANGAN mendiagnosis kondisi mental.
+Jika ada tanda bahaya, arahkan ke: Into The Light 119 ext 8.
+FORMAT: 2-3 paragraf pendek, akhiri dengan 1 pertanyaan reflektif.`,
+  },
+  en: {
+    headerSub: 'Your mental wellness companion',
+    placeholder: 'Share how you feel...',
+    disclaimer: '🌿 Soulful is an AI companion, <strong>not a replacement for a professional therapist</strong>. Please seek professional help if you need it.',
+    welcome: 'Hello 🌿 I\'m Soulful, your safe space to talk.\n\nThis is a judgment-free zone — share anything you\'re feeling. I\'m here to listen.\n\nHow are you feeling right now?',
+    welcomeQR: ['I want to talk...', 'Teach me relaxation techniques', 'I need motivation today', 'I\'m feeling very anxious'],
+    noReply: 'Sorry, no response received.',
+    modalTitle: 'Buy Soulful a Coffee',
+    modalSub: 'Your donation helps keep Soulful free for everyone.\nThank you for caring! 🌿',
+    saweriaBtn: '☕ Donate via Saweria',
+    modalNote: 'You\'ll be redirected to the secure Saweria page.',
+    thankYou: 'Thank you so much for supporting Soulful! 💛☕\n\nYour donation helps us stay free for everyone who needs mental health support. You\'re amazing! 🌿',
+    moodAnxious: 'I am feeling very anxious today',
+    moodSad: 'I feel very sad and I don\'t know why',
+    moodBurnout: 'I am exhausted and burned out from work',
+    moodSleep: 'I can\'t sleep and my mind won\'t quiet down',
+    moodLonely: 'I feel very lonely',
+    moodFrust: 'I feel angry and frustrated',
+    moodMotiv: 'I need motivation to get through today',
+    moodOverwhelm: 'I feel overwhelmed by everything',
+    breathTitle: 'Deep Breathing',
+    breathSub: 'Follow the circle rhythm to calm your mind',
+    breathInhale: 'Inhale',
+    breathHold: 'Hold',
+    breathExhale: 'Exhale',
+    breathReady: 'Ready',
+    breathStart: 'Start',
+    breathStop: 'Stop',
+    breathClose: 'Close',
+    breathCycles: 'Cycles:',
+    breathDone: 'Well done! 🌿 You\'ve completed your deep breathing exercise.\n\nHow are you feeling now?',
+    systemPrompt: `You are Soulful, a warm and empathetic AI mental wellness companion.
+Listen attentively without judgment. Always validate the user's feelings first.
+Use simple CBT approaches. Provide practical techniques: deep breathing, grounding, journaling.
+Use warm, gentle English. Do NOT diagnose any mental conditions.
+If there are danger signs, advise the user to seek professional help immediately.
+FORMAT: 2-3 short paragraphs, end with 1 reflective question.`,
+  }
+};
+
+function getLangText(key) { return T[lang][key]; }
+
+function setLang(l) {
+  if (lang === l) return;
+  lang = l;
+  localStorage.setItem('soulful_lang', lang);
+  document.getElementById('btnID').classList.toggle('active', l === 'id');
+  document.getElementById('btnEN').classList.toggle('active', l === 'en');
+  applyLang();
+
+  // Reset chat & history
+  history = [];
+  const chat = document.getElementById('chat');
+  chat.innerHTML = `<div class="disclaimer" id="disclaimer">${T[lang].disclaimer}</div>`;
+  setTimeout(() => addAI(T[lang].welcome, T[lang].welcomeQR), 300);
+}
+
+function applyLang() {
+  const t = T[lang];
+  // header subtitle
+  document.querySelector('.header-sub').textContent = t.headerSub;
+  // placeholder
+  document.getElementById('inp').placeholder = t.placeholder;
+  // disclaimer
+  document.getElementById('disclaimer').innerHTML = t.disclaimer;
+  // modal
+  document.querySelector('.modal-title').textContent = t.modalTitle;
+  document.querySelector('.modal-sub').innerHTML = t.modalSub.replace('\n', '<br>');
+  document.querySelector('.saweria-btn').textContent = t.saweriaBtn;
+  document.querySelector('.modal-note').childNodes[0].textContent = t.modalNote;
+  // mood chip spans
+  document.querySelectorAll('.mood-bar .chip span').forEach(span => {
+    span.textContent = span.dataset[lang];
+  });
+  // banner button
+  const donaBtn = document.querySelector('.donasi-btn');
+  donaBtn.textContent = lang === 'id' ? 'Traktir' : 'Support';
+  // banner text
+  const bannerStrong = document.querySelector('.donasi-text strong');
+  bannerStrong.textContent = lang === 'id' ? 'Soulful gratis untuk semua!' : 'Soulful is free for everyone!';
+  const bannerSpan = document.querySelector('.donasi-text span');
+  bannerSpan.textContent = lang === 'id'
+    ? 'Bantu kami tetap beroperasi dengan donasi kecil 🌿'
+    : 'Help us stay running with a small donation 🌿';
+}
+
+// ─── INIT ─────────────────────────────────────────────────
 let history = [];
 let busy = false;
 
-// 🔥 USER ID (AMAN)
-function getUserId() {
-  let userId = tg?.initDataUnsafe?.user?.id;
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
 
-  if (!userId) {
-    userId = localStorage.getItem('guest_id');
-    if (!userId) {
-      userId = crypto.randomUUID();
-      localStorage.setItem('guest_id', userId);
-    }
+window.onload = () => {
+  // Apply saved language
+  if (lang === 'en') {
+    document.getElementById('btnID').classList.remove('active');
+    document.getElementById('btnEN').classList.add('active');
   }
+  applyLang();
 
-  return userId;
-}
+  setTimeout(() => addAI(T[lang].welcome, T[lang].welcomeQR), 400);
 
-// UI
-function addUser(text) {
-  const chat = document.getElementById('chat');
-  chat.innerHTML += `<div class="msg user">${text}</div>`;
-  chat.scrollTop = chat.scrollHeight;
-}
+  // Hide banner if closed today
+  const lastClosed = localStorage.getItem('soulful_banner_closed');
+  if (lastClosed && Date.now() - lastClosed < 86400000) {
+    document.getElementById('donasBanner').style.display = 'none';
+  }
+};
 
-function addAI(text) {
-  const chat = document.getElementById('chat');
-  chat.innerHTML += `<div class="msg ai">${text}</div>`;
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function showTyping() {
-  const chat = document.getElementById('chat');
-  chat.innerHTML += `<div class="msg ai" id="typing">...</div>`;
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function hideTyping() {
-  document.getElementById('typing')?.remove();
-}
-
-// SEND
+// ─── SEND ────────────────────────────────────────────────
 async function send() {
   const inp = document.getElementById('inp');
   const text = inp.value.trim();
-
   if (!text || busy) return;
 
-  inp.value = '';
+  inp.value = ''; inp.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
   busy = true;
 
   addUser(text);
   history.push({ role: 'user', content: text });
   showTyping();
 
-  const userId = getUserId();
-
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId,
         messages: [
-          { role: 'system', content: 'Kamu adalah AI yang empatik dan membantu.' },
+          { role: 'system', content: T[lang].systemPrompt },
           ...history
         ]
       })
     });
 
+    if (!res.ok) throw new Error(`Error ${res.status}`);
     const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
 
-    if (!res.ok) {
-      throw new Error(data.error || 'Server error');
-    }
-
-    const reply =
-      data.choices?.[0]?.message?.content ||
-      'Tidak ada respons';
-
+    const reply = data.choices?.[0]?.message?.content || T[lang].noReply;
     history.push({ role: 'assistant', content: reply });
-
     hideTyping();
-    addAI(reply);
+    addAI(reply, getQuickReplies(text));
 
   } catch (err) {
     hideTyping();
-    alert('Error: ' + err.message);
+    showToast('❌ ' + err.message);
     console.error(err);
   }
 
-  // delay anti spam
-  setTimeout(() => {
-    busy = false;
-  }, 2000);
+  busy = false;
 }
 
-// ENTER
-document.getElementById('inp').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') send();
-});
-</script>
+// ─── ADD MESSAGES ────────────────────────────────────────
+function addUser(text) {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap user';
+  wrap.innerHTML = `
+    <div class="bubble user">${esc(text)}</div>
+    <div class="bubble-time">${now()}</div>
+  `;
+  chat.appendChild(wrap);
+  scrollBottom();
+}
 
+function addAI(text, qr = []) {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai';
+  const formatted = text.replace(/\n/g, '<br>');
+  wrap.innerHTML = `
+    <div class="ai-row">
+      <div class="ai-mini-avatar">🌿</div>
+      <div class="bubble ai">${formatted}</div>
+    </div>
+    <div class="bubble-time" style="padding-left:36px">${now()}</div>
+  `;
+  if (qr.length) {
+    const qrDiv = document.createElement('div');
+    qrDiv.className = 'quick-replies';
+    qr.forEach(q => {
+      const btn = document.createElement('button');
+      btn.className = 'qr-btn';
+      btn.textContent = q;
+      btn.onclick = () => { document.getElementById('inp').value = q; qrDiv.remove(); send(); };
+      qrDiv.appendChild(btn);
+    });
+    wrap.appendChild(qrDiv);
+  }
+  chat.appendChild(wrap);
+  scrollBottom();
+}
+
+// ─── TYPING ──────────────────────────────────────────────
+function showTyping() {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai'; wrap.id = 'typing';
+  wrap.innerHTML = `
+    <div class="typing-wrap">
+      <div class="ai-mini-avatar">🌿</div>
+      <div class="typing-bubble">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>`;
+  chat.appendChild(wrap);
+  scrollBottom();
+}
+function hideTyping() { document.getElementById('typing')?.remove(); }
+
+// ─── MOOD CHIPS ───────────────────────────────────────────
+function useMood(el, text) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('inp').value = text;
+  send();
+  setTimeout(() => el.classList.remove('active'), 1500);
+}
+
+// ─── QUICK REPLIES ────────────────────────────────────────
+function getQuickReplies(msg) {
+  const m = msg.toLowerCase();
+  if (lang === 'en') {
+    if (m.includes('anxi') || m.includes('panic') || m.includes('worry'))
+      return ['Teach me deep breathing', 'What\'s making me anxious?', '5-4-3-2-1 grounding technique'];
+    if (m.includes('sad') || m.includes('cry') || m.includes('depress'))
+      return ['I want to share more', 'Why do I feel this way?', 'How can I feel better?'];
+    if (m.includes('sleep') || m.includes('insomnia') || m.includes('restless'))
+      return ['Tips for better sleep', 'Relaxation before bed', 'Why can\'t my mind settle?'];
+    if (m.includes('burnout') || m.includes('tired') || m.includes('exhaust'))
+      return ['How to overcome burnout', 'I need to rest', 'Tips to maintain energy'];
+    if (m.includes('lonely') || m.includes('alone') || m.includes('isolated'))
+      return ['I need someone to talk to', 'How to feel more connected?', 'Tell me more...'];
+    if (m.includes('motiv') || m.includes('stuck') || m.includes('unmotiv'))
+      return ['Help me start today', 'Self-motivation techniques', 'I feel stuck'];
+    return ['Tell me more', 'What can I do right now?', 'Teach me a relaxation technique'];
+  }
+  if (m.includes('cemas') || m.includes('panik') || m.includes('anxious'))
+    return ['Ajari teknik napas dalam', 'Apa yang membuatku cemas?', 'Teknik grounding 5-4-3-2-1'];
+  if (m.includes('sedih') || m.includes('nangis') || m.includes('menangis'))
+    return ['Aku mau cerita lebih', 'Kenapa aku merasa begini?', 'Bagaimana cara merasa lebih baik?'];
+  if (m.includes('tidur') || m.includes('insomnia') || m.includes('gelisah'))
+    return ['Tips tidur lebih baik', 'Teknik relaksasi sebelum tidur', 'Kenapa pikiranku tidak tenang?'];
+  if (m.includes('burnout') || m.includes('lelah') || m.includes('cape') || m.includes('capek'))
+    return ['Cara atasi burnout', 'Aku perlu istirahat', 'Tips menjaga energi'];
+  if (m.includes('kesepian') || m.includes('sendiri'))
+    return ['Aku butuh teman bicara', 'Bagaimana cara merasa terhubung?', 'Cerita lebih...'];
+  if (m.includes('motivasi') || m.includes('semangat'))
+    return ['Bantu aku mulai hari ini', 'Teknik motivasi diri', 'Aku merasa stuck'];
+  return ['Ceritakan lebih lanjut', 'Apa yang bisa kulakukan sekarang?', 'Ajari teknik relaksasi'];
+}
+
+// ─── HELPERS ─────────────────────────────────────────────
+function scrollBottom() {
+  const chat = document.getElementById('chat');
+  setTimeout(() => chat.scrollTop = chat.scrollHeight, 50);
+}
+function now() {
+  return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+}
+function esc(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+function onType(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+  document.getElementById('sendBtn').disabled = !el.value.trim();
+}
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+
+// ─── BREATHING EXERCISE ──────────────────────────────────
+const PATTERNS = {
+  '4-4-4': { inhale: 4, hold: 4, exhale: 4, label: '4-4-4' },
+  '4-7-8': { inhale: 4, hold: 7, exhale: 8, label: '4-7-8' },
+  'box':   { inhale: 4, hold: 4, exhale: 4, label: 'Box' }
+};
+
+let breathPattern = PATTERNS['4-4-4'];
+let breathRunning = false;
+let breathTimer = null;
+let breathPhaseTimer = null;
+let cycles = 0;
+
+function openBreath() {
+  document.getElementById('breathOverlay').classList.add('open');
+  applyBreathLang();
+  resetBreathUI();
+}
+function closeBreath() {
+  stopBreath();
+  document.getElementById('breathOverlay').classList.remove('open');
+  if (cycles > 0) {
+    setTimeout(() => addAI(T[lang].breathDone), 400);
+    cycles = 0;
+  }
+}
+function closeBreathOutside(e) {
+  if (e.target === document.getElementById('breathOverlay')) closeBreath();
+}
+
+function applyBreathLang() {
+  const t = T[lang];
+  document.getElementById('breathTitle').textContent = t.breathTitle;
+  document.getElementById('breathSub').textContent = t.breathSub;
+  document.getElementById('breathPhase').textContent = t.breathReady;
+  document.getElementById('breathStartBtn').textContent = breathRunning ? t.breathStop : t.breathStart;
+  document.getElementById('breathCycles').innerHTML = t.breathCycles + ' <span id="cycleCount">' + cycles + '</span>';
+  document.querySelector('.breath-close-btn').textContent = t.breathClose;
+}
+
+function setPattern(el, key) {
+  breathPattern = PATTERNS[key];
+  document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (breathRunning) { stopBreath(); resetBreathUI(); }
+}
+
+function resetBreathUI() {
+  const t = T[lang];
+  const ring = document.getElementById('breathRing');
+  ring.className = 'breath-ring';
+  document.getElementById('breathPhase').textContent = t.breathReady;
+  document.getElementById('breathCount').textContent = '—';
+  document.getElementById('breathStartBtn').textContent = t.breathStart;
+  document.getElementById('cycleCount').textContent = cycles;
+}
+
+function toggleBreath() {
+  if (breathRunning) { stopBreath(); resetBreathUI(); }
+  else startBreath();
+}
+
+function stopBreath() {
+  breathRunning = false;
+  clearTimeout(breathTimer);
+  clearInterval(breathPhaseTimer);
+  document.getElementById('breathStartBtn').textContent = T[lang].breathStart;
+  document.getElementById('breathRing').className = 'breath-ring';
+}
+
+function startBreath() {
+  breathRunning = true;
+  document.getElementById('breathStartBtn').textContent = T[lang].breathStop;
+  runPhase('inhale', breathPattern.inhale, () =>
+    runPhase('hold', breathPattern.hold, () =>
+      runPhase('exhale', breathPattern.exhale, () => {
+        if (!breathRunning) return;
+        cycles++;
+        document.getElementById('cycleCount').textContent = cycles;
+        // After 5 cycles suggest stopping
+        if (cycles >= 5) {
+          stopBreath();
+          resetBreathUI();
+          return;
+        }
+        startBreath();
+      })
+    )
+  );
+}
+
+function runPhase(phase, duration, onDone) {
+  if (!breathRunning) return;
+  const t = T[lang];
+  const ring = document.getElementById('breathRing');
+  const phaseEl = document.getElementById('breathPhase');
+  const countEl = document.getElementById('breathCount');
+
+  ring.className = 'breath-ring ' + phase;
+  phaseEl.textContent = phase === 'inhale' ? t.breathInhale
+                       : phase === 'hold'   ? t.breathHold
+                       : t.breathExhale;
+
+  let sec = duration;
+  countEl.textContent = sec;
+
+  clearInterval(breathPhaseTimer);
+  breathPhaseTimer = setInterval(() => {
+    if (!breathRunning) { clearInterval(breathPhaseTimer); return; }
+    sec--;
+    countEl.textContent = sec;
+    if (sec <= 0) {
+      clearInterval(breathPhaseTimer);
+      breathTimer = setTimeout(onDone, 200);
+    }
+  }, 1000);
+}
+
+// Update breath UI when language changes (patch applyLang)
+const _origApplyLang = applyLang;
+applyLang = function() {
+  _origApplyLang();
+  if (document.getElementById('breathOverlay').classList.contains('open')) {
+    applyBreathLang();
+  }
+};
+const SAWERIA_USERNAME = 'daksarasoulful';
+let selectedAmount = 5000;
+let bannerDismissed = false;
+
+function selectAmount(el, amount) {
+  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAmount = amount;
+}
+function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+function closeBanner() {
+  document.getElementById('donasBanner').style.display = 'none';
+  bannerDismissed = true;
+  localStorage.setItem('soulful_banner_closed', Date.now());
+}
+function goSaweria() {
+  const url = selectedAmount > 0
+    ? `https://saweria.co/${SAWERIA_USERNAME}?amount=${selectedAmount}`
+    : `https://saweria.co/${SAWERIA_USERNAME}`;
+  if (tg?.openLink) tg.openLink(url);
+  else window.open(url, '_blank');
+  closeModal();
+}
+</script>
 </body>
 </html>
