@@ -394,6 +394,137 @@
       from { transform: translateY(100%); opacity: 0; }
       to   { transform: translateY(0); opacity: 1; }
     }
+
+    /* ─── BREATHING MODAL ─── */
+    .breath-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(58,50,44,0.55);
+      backdrop-filter: blur(6px);
+      align-items: flex-end; justify-content: center;
+    }
+    .breath-overlay.open { display: flex; }
+
+    .breath-modal {
+      background: linear-gradient(160deg, #e8f5ec 0%, var(--cream) 100%);
+      border-radius: 28px 28px 0 0;
+      padding: 28px 24px 40px;
+      width: 100%; max-width: 480px;
+      animation: slideUp 0.35s ease;
+      text-align: center;
+    }
+    .breath-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: rgba(107,158,120,0.3);
+      margin: 0 auto 22px;
+    }
+    .breath-title {
+      font-family: 'Lora', serif;
+      font-size: 1.15rem; font-weight: 600;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .breath-sub {
+      font-size: 0.78rem; color: var(--text-soft);
+      margin-bottom: 28px; line-height: 1.5;
+    }
+
+    /* Circle animation */
+    .breath-ring-wrap {
+      position: relative;
+      width: 190px; height: 190px;
+      margin: 0 auto 24px;
+    }
+    .breath-ring {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(107,158,120,0.18) 0%, rgba(107,158,120,0.06) 70%);
+      border: 2.5px solid rgba(107,158,120,0.35);
+      transform: scale(0.72);
+      transition: transform 4s cubic-bezier(0.4,0,0.2,1),
+                  background 4s ease,
+                  border-color 4s ease;
+    }
+    .breath-ring.inhale {
+      transform: scale(1);
+      background: radial-gradient(circle, rgba(107,158,120,0.32) 0%, rgba(107,158,120,0.1) 70%);
+      border-color: rgba(107,158,120,0.7);
+    }
+    .breath-ring.hold {
+      transform: scale(1);
+      background: radial-gradient(circle, rgba(107,158,120,0.28) 0%, rgba(107,158,120,0.08) 70%);
+      border-color: rgba(107,158,120,0.5);
+      transition: transform 0.3s ease, background 0.5s ease, border-color 0.5s ease;
+    }
+    .breath-ring.exhale {
+      transform: scale(0.72);
+      background: radial-gradient(circle, rgba(159,196,168,0.12) 0%, rgba(107,158,120,0.04) 70%);
+      border-color: rgba(107,158,120,0.25);
+    }
+
+    .breath-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4px;
+    }
+    .breath-phase {
+      font-family: 'Lora', serif;
+      font-size: 1rem; font-weight: 600;
+      color: var(--sage-dark);
+      transition: opacity 0.4s ease;
+    }
+    .breath-count {
+      font-size: 2rem; font-weight: 700;
+      color: var(--sage); line-height: 1;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    /* Pattern selector */
+    .breath-patterns {
+      display: flex; gap: 8px; justify-content: center;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .pattern-btn {
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      border-radius: 14px; padding: 6px 14px;
+      font-size: 0.73rem; font-family: 'Nunito', sans-serif;
+      color: var(--text-soft); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pattern-btn.active {
+      border-color: var(--sage);
+      background: rgba(107,158,120,0.1);
+      color: var(--sage-dark); font-weight: 700;
+    }
+
+    /* Cycles counter */
+    .breath-cycles {
+      font-size: 0.72rem; color: var(--text-soft);
+      margin-bottom: 18px;
+    }
+    .breath-cycles span { color: var(--sage-dark); font-weight: 700; }
+
+    /* Controls */
+    .breath-controls { display: flex; gap: 10px; justify-content: center; }
+    .breath-start-btn {
+      background: linear-gradient(135deg, #6b9e78, #4a7a55);
+      color: white; border: none; border-radius: 22px;
+      padding: 13px 36px; font-size: 0.9rem; font-weight: 700;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(107,158,120,0.4);
+      transition: all 0.18s;
+    }
+    .breath-start-btn:active { transform: scale(0.97); }
+    .breath-close-btn {
+      background: rgba(107,158,120,0.08);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      color: var(--text-soft); border-radius: 22px;
+      padding: 13px 22px; font-size: 0.9rem;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .breath-close-btn:active { transform: scale(0.97); }
   </style>
 </head>
 <body>
@@ -425,6 +556,7 @@
   <div class="chip" onclick="useMood(this, getLangText('moodFrust'))">😤 <span data-id="Frustrasi" data-en="Frustrated">Frustrasi</span></div>
   <div class="chip" onclick="useMood(this, getLangText('moodMotiv'))">✨ <span data-id="Motivasi" data-en="Motivation">Motivasi</span></div>
   <div class="chip" onclick="useMood(this, getLangText('moodOverwhelm'))">🌀 <span data-id="Overwhelmed" data-en="Overwhelmed">Overwhelmed</span></div>
+  <div class="chip" onclick="openBreath()">🫁 <span data-id="Relaksasi" data-en="Breathe">Relaksasi</span></div>
 </div>
 
 <!-- DONASI BANNER -->
@@ -488,6 +620,36 @@
 </div>
 
 
+<!-- BREATHING MODAL -->
+<div class="breath-overlay" id="breathOverlay" onclick="closeBreathOutside(event)">
+  <div class="breath-modal">
+    <div class="breath-handle"></div>
+    <div class="breath-title" id="breathTitle">Napas Dalam</div>
+    <div class="breath-sub" id="breathSub">Ikuti irama lingkaran untuk menenangkan pikiran</div>
+
+    <div class="breath-patterns">
+      <button class="pattern-btn active" onclick="setPattern(this,'4-4-4')" id="pat1">4-4-4</button>
+      <button class="pattern-btn" onclick="setPattern(this,'4-7-8')" id="pat2">4-7-8</button>
+      <button class="pattern-btn" onclick="setPattern(this,'box')" id="pat3" id="patBox">Box</button>
+    </div>
+
+    <div class="breath-ring-wrap">
+      <div class="breath-ring" id="breathRing"></div>
+      <div class="breath-center">
+        <div class="breath-phase" id="breathPhase">Siap</div>
+        <div class="breath-count" id="breathCount">—</div>
+      </div>
+    </div>
+
+    <div class="breath-cycles" id="breathCycles">Siklus: <span id="cycleCount">0</span></div>
+
+    <div class="breath-controls">
+      <button class="breath-start-btn" id="breathStartBtn" onclick="toggleBreath()">Mulai</button>
+      <button class="breath-close-btn" onclick="closeBreath()">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <div class="chat" id="chat">
   <div class="disclaimer" id="disclaimer">
     🌿 Soulful adalah teman bicara AI, <strong>bukan pengganti psikolog profesional</strong>.
@@ -535,6 +697,17 @@ const T = {
     moodFrust: 'Aku merasa marah dan frustrasi',
     moodMotiv: 'Aku butuh motivasi untuk melanjutkan hari ini',
     moodOverwhelm: 'Aku merasa overwhelmed dengan banyak hal',
+    breathTitle: 'Napas Dalam',
+    breathSub: 'Ikuti irama lingkaran untuk menenangkan pikiran',
+    breathInhale: 'Tarik Napas',
+    breathHold: 'Tahan',
+    breathExhale: 'Hembuskan',
+    breathReady: 'Siap',
+    breathStart: 'Mulai',
+    breathStop: 'Berhenti',
+    breathClose: 'Tutup',
+    breathCycles: 'Siklus:',
+    breathDone: 'Bagus sekali! 🌿 Kamu telah menyelesaikan latihan napas dalam.\n\nBagaimana perasaanmu sekarang?',
     systemPrompt: `Kamu adalah Soulful, AI pendamping kesehatan mental yang hangat dan empatik.
 Dengarkan dengan penuh perhatian tanpa menghakimi. Validasi perasaan pengguna terlebih dahulu.
 Gunakan pendekatan CBT sederhana. Berikan teknik praktis: napas dalam, grounding, journaling.
@@ -562,6 +735,17 @@ FORMAT: 2-3 paragraf pendek, akhiri dengan 1 pertanyaan reflektif.`,
     moodFrust: 'I feel angry and frustrated',
     moodMotiv: 'I need motivation to get through today',
     moodOverwhelm: 'I feel overwhelmed by everything',
+    breathTitle: 'Deep Breathing',
+    breathSub: 'Follow the circle rhythm to calm your mind',
+    breathInhale: 'Inhale',
+    breathHold: 'Hold',
+    breathExhale: 'Exhale',
+    breathReady: 'Ready',
+    breathStart: 'Start',
+    breathStop: 'Stop',
+    breathClose: 'Close',
+    breathCycles: 'Cycles:',
+    breathDone: 'Well done! 🌿 You\'ve completed your deep breathing exercise.\n\nHow are you feeling now?',
     systemPrompt: `You are Soulful, a warm and empathetic AI mental wellness companion.
 Listen attentively without judgment. Always validate the user's feelings first.
 Use simple CBT approaches. Provide practical techniques: deep breathing, grounding, journaling.
@@ -811,7 +995,132 @@ function onKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
 }
 
-// ─── DONASI SAWERIA ───────────────────────────────────────
+// ─── BREATHING EXERCISE ──────────────────────────────────
+const PATTERNS = {
+  '4-4-4': { inhale: 4, hold: 4, exhale: 4, label: '4-4-4' },
+  '4-7-8': { inhale: 4, hold: 7, exhale: 8, label: '4-7-8' },
+  'box':   { inhale: 4, hold: 4, exhale: 4, label: 'Box' }
+};
+
+let breathPattern = PATTERNS['4-4-4'];
+let breathRunning = false;
+let breathTimer = null;
+let breathPhaseTimer = null;
+let cycles = 0;
+
+function openBreath() {
+  document.getElementById('breathOverlay').classList.add('open');
+  applyBreathLang();
+  resetBreathUI();
+}
+function closeBreath() {
+  stopBreath();
+  document.getElementById('breathOverlay').classList.remove('open');
+  if (cycles > 0) {
+    setTimeout(() => addAI(T[lang].breathDone), 400);
+    cycles = 0;
+  }
+}
+function closeBreathOutside(e) {
+  if (e.target === document.getElementById('breathOverlay')) closeBreath();
+}
+
+function applyBreathLang() {
+  const t = T[lang];
+  document.getElementById('breathTitle').textContent = t.breathTitle;
+  document.getElementById('breathSub').textContent = t.breathSub;
+  document.getElementById('breathPhase').textContent = t.breathReady;
+  document.getElementById('breathStartBtn').textContent = breathRunning ? t.breathStop : t.breathStart;
+  document.getElementById('breathCycles').innerHTML = t.breathCycles + ' <span id="cycleCount">' + cycles + '</span>';
+  document.querySelector('.breath-close-btn').textContent = t.breathClose;
+}
+
+function setPattern(el, key) {
+  breathPattern = PATTERNS[key];
+  document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (breathRunning) { stopBreath(); resetBreathUI(); }
+}
+
+function resetBreathUI() {
+  const t = T[lang];
+  const ring = document.getElementById('breathRing');
+  ring.className = 'breath-ring';
+  document.getElementById('breathPhase').textContent = t.breathReady;
+  document.getElementById('breathCount').textContent = '—';
+  document.getElementById('breathStartBtn').textContent = t.breathStart;
+  document.getElementById('cycleCount').textContent = cycles;
+}
+
+function toggleBreath() {
+  if (breathRunning) { stopBreath(); resetBreathUI(); }
+  else startBreath();
+}
+
+function stopBreath() {
+  breathRunning = false;
+  clearTimeout(breathTimer);
+  clearInterval(breathPhaseTimer);
+  document.getElementById('breathStartBtn').textContent = T[lang].breathStart;
+  document.getElementById('breathRing').className = 'breath-ring';
+}
+
+function startBreath() {
+  breathRunning = true;
+  document.getElementById('breathStartBtn').textContent = T[lang].breathStop;
+  runPhase('inhale', breathPattern.inhale, () =>
+    runPhase('hold', breathPattern.hold, () =>
+      runPhase('exhale', breathPattern.exhale, () => {
+        if (!breathRunning) return;
+        cycles++;
+        document.getElementById('cycleCount').textContent = cycles;
+        // After 5 cycles suggest stopping
+        if (cycles >= 5) {
+          stopBreath();
+          resetBreathUI();
+          return;
+        }
+        startBreath();
+      })
+    )
+  );
+}
+
+function runPhase(phase, duration, onDone) {
+  if (!breathRunning) return;
+  const t = T[lang];
+  const ring = document.getElementById('breathRing');
+  const phaseEl = document.getElementById('breathPhase');
+  const countEl = document.getElementById('breathCount');
+
+  ring.className = 'breath-ring ' + phase;
+  phaseEl.textContent = phase === 'inhale' ? t.breathInhale
+                       : phase === 'hold'   ? t.breathHold
+                       : t.breathExhale;
+
+  let sec = duration;
+  countEl.textContent = sec;
+
+  clearInterval(breathPhaseTimer);
+  breathPhaseTimer = setInterval(() => {
+    if (!breathRunning) { clearInterval(breathPhaseTimer); return; }
+    sec--;
+    countEl.textContent = sec;
+    if (sec <= 0) {
+      clearInterval(breathPhaseTimer);
+      breathTimer = setTimeout(onDone, 200);
+    }
+  }, 1000);
+}
+
+// Update breath UI when language changes (patch applyLang)
+const _origApplyLang = applyLang;
+applyLang = function() {
+  _origApplyLang();
+  if (document.getElementById('breathOverlay').classList.contains('open')) {
+    applyBreathLang();
+  }
+};
 const SAWERIA_USERNAME = 'daksarasoulful';
 let selectedAmount = 5000;
 let bannerDismissed = false;
@@ -838,7 +1147,6 @@ function goSaweria() {
   if (tg?.openLink) tg.openLink(url);
   else window.open(url, '_blank');
   closeModal();
-  setTimeout(() => addAI(T[lang].thankYou), 500);
 }
 </script>
 </body>
