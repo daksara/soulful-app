@@ -688,7 +688,7 @@ function onType(el) {
 
 // ─── DONASI SAWERIA ───────────────────────────────────────
 // Ganti 'namasaweriamu' dengan username Saweria kamu!
-const SAWERIA_USERNAME = 'namasaweriamu';
+const SAWERIA_USERNAME = 'daksarasoulful';
 
 let selectedAmount = 5000;
 let bannerDismissed = false;
@@ -720,8 +720,8 @@ function closeBanner() {
 
 function goSaweria() {
   const url = selectedAmount > 0
-    ? `https://saweria.co/${SAWERIA_USERNAME}?amount=${selectedAmount}`
-    : `https://saweria.co/${SAWERIA_USERNAME}`;
+    ? `https://saweria.co/${daksarasoulful}?amount=${selectedAmount}`
+    : `https://saweria.co/${daksarasoulful}`;
   // Buka via Telegram jika tersedia, fallback ke window.open
   if (tg?.openLink) tg.openLink(url);
   else window.open(url, '_blank');
