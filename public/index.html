@@ -805,6 +805,11 @@ let busy = false;
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
+// Ambil userId dari Telegram, fallback null (proxy akan pakai IP)
+const userId = tg?.initDataUnsafe?.user?.id
+  ? String(tg.initDataUnsafe.user.id)
+  : null;
+
 window.onload = () => {
   // Apply saved language
   if (lang === 'en') {
@@ -841,6 +846,7 @@ async function send() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        userId,
         messages: [
           { role: 'system', content: T[lang].systemPrompt },
           ...history
@@ -848,9 +854,12 @@ async function send() {
       })
     });
 
-    if (!res.ok) throw new Error(`Error ${res.status}`);
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || `Error ${res.status}`);
+    }
     const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
+    if (data.error) throw new Error(data.error);
 
     const reply = data.choices?.[0]?.message?.content || T[lang].noReply;
     history.push({ role: 'assistant', content: reply });
