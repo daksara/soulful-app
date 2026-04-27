@@ -326,30 +326,17 @@
       50%       { opacity: 0.85; box-shadow: 0 0 0 4px rgba(76,175,114,0); }
     }
 
-    /* ─── DONASI BANNER ─── */
-    .donasi-banner {
-      position: relative; z-index: 10; flex-shrink: 0;
-      background: var(--peach);
-      border-bottom: 1px solid rgba(240,175,120,0.15);
-      padding: 8px 14px;
-      display: flex; align-items: center; gap: 10px;
+    .coffee-btn {
+      background: rgba(244,164,96,0.15);
+      border: 1.5px solid rgba(244,164,96,0.35);
+      border-radius: 20px; padding: 5px 10px;
+      font-size: 1rem; cursor: pointer;
+      transition: all 0.18s; flex-shrink: 0;
+      line-height: 1;
     }
-    .donasi-text { flex: 1; font-size: 0.75rem; color: var(--text-soft); line-height: 1.4; }
-    .donasi-text strong { color: var(--sage-dark); font-size: 0.78rem; }
-    .donasi-btn {
-      flex-shrink: 0;
-      background: linear-gradient(135deg, #f4a460, #cd7f32);
-      color: white; border: none; border-radius: 20px;
-      padding: 7px 14px; font-size: 0.75rem; font-weight: 700;
-      font-family: 'Nunito', sans-serif;
-      cursor: pointer; white-space: nowrap;
-      box-shadow: 0 3px 10px rgba(205,127,50,0.35);
-      transition: all 0.18s;
-    }
-    .donasi-btn:active { transform: scale(0.96); }
-    .donasi-close {
-      font-size: 14px; color: var(--text-soft);
-      cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+    .coffee-btn:active {
+      background: rgba(244,164,96,0.28);
+      transform: scale(0.93);
     }
 
     /* ─── DONASI MODAL ─── */
@@ -426,6 +413,84 @@
       animation: fadeUp 0.3s ease;
       box-shadow: 0 4px 15px rgba(229,115,115,0.4);
     }
+
+    /* ─── CRISIS BANNER ─── */
+    .crisis-banner {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      align-items: flex-end; justify-content: center;
+      padding: 0;
+    }
+    .crisis-banner.open { display: flex; }
+    .crisis-card {
+      background: #fff;
+      border-radius: 28px 28px 0 0;
+      padding: 28px 22px 40px;
+      width: 100%; max-width: 480px;
+      animation: slideUp 0.35s ease;
+      border-top: 4px solid #e53935;
+    }
+    @media (prefers-color-scheme: dark) {
+      .crisis-card { background: #1e1e1e; }
+    }
+    .crisis-icon {
+      font-size: 2.2rem; text-align: center; margin-bottom: 10px;
+    }
+    .crisis-title {
+      font-family: 'Lora', serif;
+      font-size: 1.1rem; font-weight: 600;
+      color: #c62828; text-align: center; margin-bottom: 8px;
+    }
+    .crisis-body {
+      font-size: 0.82rem; color: #555; text-align: center;
+      line-height: 1.6; margin-bottom: 20px;
+    }
+    @media (prefers-color-scheme: dark) {
+      .crisis-body { color: #aaa; }
+    }
+    .crisis-hotline {
+      background: #ffebee;
+      border: 1.5px solid #ef9a9a;
+      border-radius: 16px; padding: 14px 16px;
+      margin-bottom: 12px; text-align: center;
+    }
+    @media (prefers-color-scheme: dark) {
+      .crisis-hotline { background: #2a1a1a; border-color: #7f3333; }
+    }
+    .crisis-hotline-name {
+      font-size: 0.72rem; color: #c62828; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px;
+    }
+    .crisis-hotline-num {
+      font-size: 1.4rem; font-weight: 800;
+      color: #c62828; font-family: 'Nunito', sans-serif;
+      letter-spacing: 0.05em;
+    }
+    .crisis-hotline-sub {
+      font-size: 0.68rem; color: #888; margin-top: 2px;
+    }
+    .crisis-call-btn {
+      display: block; width: 100%;
+      background: linear-gradient(135deg, #e53935, #c62828);
+      color: white; border: none; border-radius: 16px;
+      padding: 14px; font-size: 0.95rem; font-weight: 700;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(229,57,53,0.35);
+      margin-bottom: 10px; text-decoration: none;
+      text-align: center; transition: all 0.18s;
+    }
+    .crisis-call-btn:active { transform: scale(0.98); }
+    .crisis-continue-btn {
+      width: 100%; background: transparent;
+      border: 1.5px solid rgba(107,158,120,0.25);
+      border-radius: 14px; padding: 11px;
+      font-size: 0.82rem; color: var(--text-soft);
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .crisis-continue-btn:active { background: rgba(107,158,120,0.06); }
 
     @keyframes slideUp {
       from { transform: translateY(100%); opacity: 0; }
@@ -704,7 +769,7 @@
     <div class="header-name">Soulful</div>
     <div class="header-sub">Teman cerita & kesehatan mental</div>
   </div>
-  <div class="header-badge">AI GRATIS</div>
+  <button class="coffee-btn" onclick="openModal()" title="Support Soulful">☕</button>
   <div class="lang-toggle">
     <button class="lang-btn active" id="btnID" onclick="setLang('id')">ID</button>
     <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
@@ -723,17 +788,6 @@
   <div class="chip" onclick="useMood(this, getLangText('moodOverwhelm'))">🌀 <span data-id="Overwhelmed" data-en="Overwhelmed">Overwhelmed</span></div>
   <div class="chip" onclick="openBreath()">🫁 <span data-id="Relaksasi" data-en="Breathe">Relaksasi</span></div>
   <div class="chip" onclick="openTracker()">📊 <span data-id="Mood Harian" data-en="Mood Log">Mood Harian</span></div>
-</div>
-
-<!-- DONASI BANNER -->
-<div class="donasi-banner" id="donasBanner">
-  <div style="font-size:20px">☕</div>
-  <div class="donasi-text">
-    <strong data-id="Soulful gratis untuk semua!" data-en="Soulful is free for everyone!">Soulful gratis untuk semua!</strong><br>
-    <span data-id="Bantu kami tetap beroperasi dengan donasi kecil 🌿" data-en="Help us stay running with a small donation 🌿">Bantu kami tetap beroperasi dengan donasi kecil 🌿</span>
-  </div>
-  <button class="donasi-btn" onclick="openModal()" data-id="Traktir" data-en="Support">Traktir</button>
-  <span class="donasi-close" onclick="closeBanner()">✕</span>
 </div>
 
 <!-- DONASI MODAL -->
@@ -785,6 +839,27 @@
   </div>
 </div>
 
+
+<!-- CRISIS BANNER -->
+<div class="crisis-banner" id="crisisBanner">
+  <div class="crisis-card">
+    <div class="crisis-icon">🆘</div>
+    <div class="crisis-title" id="crisisTitle">Kamu Tidak Sendirian</div>
+    <div class="crisis-body" id="crisisBody">
+      Aku dengar kamu sedang merasakan sesuatu yang sangat berat.<br>
+      Tolong hubungi profesional yang bisa benar-benar membantumu sekarang.
+    </div>
+    <div class="crisis-hotline">
+      <div class="crisis-hotline-name">Into The Light Indonesia</div>
+      <div class="crisis-hotline-num">119 ext 8</div>
+      <div class="crisis-hotline-sub" id="crisisHotlineSub">Gratis • 24 Jam • Rahasia</div>
+    </div>
+    <a class="crisis-call-btn" href="tel:119" id="crisisCallBtn">📞 Hubungi Sekarang</a>
+    <button class="crisis-continue-btn" onclick="closeCrisis()" id="crisisContinueBtn">
+      Lanjut bicara dengan Soulful
+    </button>
+  </div>
+</div>
 
 <!-- MOOD TRACKER MODAL -->
 <div class="tracker-overlay" id="trackerOverlay" onclick="closeTrackerOutside(event)">
@@ -1002,16 +1077,6 @@ function applyLang() {
   document.querySelectorAll('.mood-bar .chip span').forEach(span => {
     span.textContent = span.dataset[lang];
   });
-  // banner button
-  const donaBtn = document.querySelector('.donasi-btn');
-  donaBtn.textContent = lang === 'id' ? 'Traktir' : 'Support';
-  // banner text
-  const bannerStrong = document.querySelector('.donasi-text strong');
-  bannerStrong.textContent = lang === 'id' ? 'Soulful gratis untuk semua!' : 'Soulful is free for everyone!';
-  const bannerSpan = document.querySelector('.donasi-text span');
-  bannerSpan.textContent = lang === 'id'
-    ? 'Bantu kami tetap beroperasi dengan donasi kecil 🌿'
-    : 'Help us stay running with a small donation 🌿';
 }
 
 // ─── INIT ─────────────────────────────────────────────────
@@ -1028,20 +1093,12 @@ const userId = tg?.initDataUnsafe?.user?.id
 const initData = tg?.initData || null;
 
 window.onload = () => {
-  // Apply saved language
   if (lang === 'en') {
     document.getElementById('btnID').classList.remove('active');
     document.getElementById('btnEN').classList.add('active');
   }
   applyLang();
-
   setTimeout(() => addAI(T[lang].welcome, T[lang].welcomeQR), 400);
-
-  // Hide banner if closed today
-  const lastClosed = localStorage.getItem('soulful_banner_closed');
-  if (lastClosed && Date.now() - lastClosed < 86400000) {
-    document.getElementById('donasBanner').style.display = 'none';
-  }
 };
 
 // ─── SEND (STREAMING) ────────────────────────────────────
@@ -1056,6 +1113,12 @@ async function send() {
 
   addUser(text);
   history.push({ role: 'user', content: text });
+
+  // ── Deteksi krisis ──
+  if (isCrisis(text)) {
+    showCrisis();
+  }
+
   showTyping();
 
   try {
@@ -1282,6 +1345,52 @@ function onType(el) {
 }
 function onKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+
+// ─── CRISIS DETECTION ────────────────────────────────────
+const CRISIS_KEYWORDS_ID = [
+  'bunuh diri','ingin mati','mau mati','pengen mati','tidak mau hidup',
+  'tidak ingin hidup','menyakiti diri','nyakitin diri','melukai diri',
+  'aku mau mengakhiri','mengakhiri hidup','tidak ada harapan','hopeless',
+  'tidak sanggup lagi','sudah tidak kuat','sudah tidak tahan',
+  'lebih baik mati','tidak berguna hidup','hilang saja'
+];
+const CRISIS_KEYWORDS_EN = [
+  'kill myself','end my life','want to die','wanna die','don\'t want to live',
+  'no reason to live','hurt myself','self harm','cut myself','suicide',
+  'no hope','hopeless','can\'t go on','can\'t take it anymore',
+  'better off dead','not worth living','disappear forever'
+];
+
+function isCrisis(text) {
+  const t = text.toLowerCase();
+  const keywords = lang === 'id'
+    ? [...CRISIS_KEYWORDS_ID, ...CRISIS_KEYWORDS_EN]
+    : CRISIS_KEYWORDS_EN;
+  return keywords.some(kw => t.includes(kw));
+}
+
+function showCrisis() {
+  const isID = lang === 'id';
+  document.getElementById('crisisTitle').textContent =
+    isID ? 'Kamu Tidak Sendirian' : 'You Are Not Alone';
+  document.getElementById('crisisBody').innerHTML = isID
+    ? 'Aku dengar kamu sedang merasakan sesuatu yang sangat berat.<br>Tolong hubungi profesional yang bisa benar-benar membantumu sekarang.'
+    : 'I hear you\'re going through something very heavy.<br>Please reach out to a professional who can truly help you right now.';
+  document.getElementById('crisisHotlineSub').textContent =
+    isID ? 'Gratis • 24 Jam • Rahasia' : 'Free • 24 Hours • Confidential';
+  document.getElementById('crisisCallBtn').textContent =
+    isID ? '📞 Hubungi Sekarang' : '📞 Call Now';
+  document.getElementById('crisisContinueBtn').textContent =
+    isID ? 'Lanjut bicara dengan Soulful' : 'Continue talking with Soulful';
+  document.getElementById('crisisBanner').classList.add('open');
+
+  // Haptic feedback kalau di Telegram
+  tg?.HapticFeedback?.notificationOccurred('error');
+}
+
+function closeCrisis() {
+  document.getElementById('crisisBanner').classList.remove('open');
 }
 
 // ─── MOOD TRACKER ────────────────────────────────────────
@@ -1541,7 +1650,6 @@ applyLang = function() {
 };
 const SAWERIA_USERNAME = 'daksarasoulful';
 let selectedAmount = 5000;
-let bannerDismissed = false;
 
 function selectAmount(el, amount) {
   document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
@@ -1552,11 +1660,6 @@ function openModal() { document.getElementById('modalOverlay').classList.add('op
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 function closeModalOutside(e) {
   if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
-function closeBanner() {
-  document.getElementById('donasBanner').style.display = 'none';
-  bannerDismissed = true;
-  localStorage.setItem('soulful_banner_closed', Date.now());
 }
 function goSaweria() {
   const url = selectedAmount > 0
