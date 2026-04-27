@@ -489,8 +489,16 @@
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────────
-// Ganti dengan URL Vercel kamu setelah deploy
-const API_URL = 'https://soulful-app-git-main-daksaras-projects.vercel.app/api/chat';
+// Groq API Key — hardcode di sini (aman karena Groq free tier)
+// Daftar gratis di console.groq.com
+const GROQ_API_KEY = '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';
+
+const SYSTEM_PROMPT = `Kamu adalah Soulful, AI pendamping kesehatan mental yang hangat dan empatik.
+Dengarkan dengan penuh perhatian tanpa menghakimi. Validasi perasaan pengguna terlebih dahulu.
+Gunakan pendekatan CBT sederhana. Berikan teknik praktis: napas dalam, grounding, journaling.
+Bahasa Indonesia yang hangat dan lembut. JANGAN mendiagnosis kondisi mental.
+Jika ada tanda bahaya, arahkan ke: Into The Light 119 ext 8.
+FORMAT: 2-3 paragraf pendek, akhiri dengan 1 pertanyaan reflektif.`;
 // ──────────────────────────────────────────────────────────
 
 let history = [];
@@ -523,24 +531,35 @@ async function send() {
   showTyping();
 
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: history })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 800,
+        temperature: 0.7,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...history
+        ]
+      })
     });
 
-    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    if (!res.ok) throw new Error(`Error ${res.status}`);
     const data = await res.json();
-    if (data.error) throw new Error(data.error);
+    if (data.error) throw new Error(data.error.message);
 
-    const reply = data.reply;
+    const reply = data.choices?.[0]?.message?.content || 'Maaf, tidak ada respons.';
     history.push({ role: 'assistant', content: reply });
     hideTyping();
     addAI(reply, getQuickReplies(text));
 
   } catch (err) {
     hideTyping();
-    showToast('❌ ' + err.message.substring(0,60));
+    showToast('❌ ' + err.message);
     console.error(err);
   }
 
