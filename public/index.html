@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Soulful — Teman Cerita</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sage: #6b9e78;
+      --sage-light: #9fc4a8;
+      --sage-dark: #3d6b4a;
+      --cream: #f5f1eb;
+      --warm: #ede6db;
+      --peach: #f0cdb0;
+      --text: #3a322c;
+      --text-soft: #7d7269;
+      --white: #ffffff;
+      --shadow-sm: 0 2px 10px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: -webkit-fill-available;
+    }
+
+    /* Bg pattern */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse at top left, rgba(107,158,120,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at bottom right, rgba(240,205,176,0.1) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      position: relative; z-index: 20;
+      background: rgba(245,241,235,0.96);
+      backdrop-filter: blur(12px);
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 11px;
+      border-bottom: 1px solid rgba(107,158,120,0.13);
+      flex-shrink: 0;
+    }
+
+    .avatar-wrap { position: relative; }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, #9fc4a8 0%, #6b9e78 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 3px 12px rgba(107,158,120,0.35);
+    }
+    .online-dot {
+      position: absolute; bottom: 1px; right: 1px;
+      width: 11px; height: 11px; border-radius: 50%;
+      background: #4caf72; border: 2px solid var(--cream);
+      animation: pulse-green 2s infinite;
+    }
+
+    .header-text { flex: 1; }
+    .header-name {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem; font-weight: 600;
+      color: var(--text); letter-spacing: 0.01em;
+    }
+    .header-sub {
+      font-size: 0.7rem; color: var(--sage-dark);
+      display: flex; align-items: center; gap: 4px; margin-top: 1px;
+    }
+
+    .header-badge {
+      background: rgba(107,158,120,0.12);
+      border: 1px solid rgba(107,158,120,0.25);
+      border-radius: 20px; padding: 3px 10px;
+      font-size: 0.68rem; color: var(--sage-dark); font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── MOOD BAR ─── */
+    .mood-bar {
+      position: relative; z-index: 10; flex-shrink: 0;
+      background: rgba(245,241,235,0.9);
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(107,158,120,0.08);
+      display: flex; gap: 7px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .mood-bar::-webkit-scrollbar { display: none; }
+
+    .chip {
+      flex-shrink: 0;
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.18);
+      border-radius: 20px; padding: 5px 13px;
+      font-size: 0.75rem; font-family: 'Nunito', sans-serif;
+      color: var(--text-soft); cursor: pointer;
+      transition: all 0.18s ease; white-space: nowrap;
+      box-shadow: var(--shadow-sm);
+    }
+    .chip:active, .chip.active {
+      background: rgba(107,158,120,0.12);
+      border-color: var(--sage);
+      color: var(--sage-dark); font-weight: 600;
+      transform: scale(0.97);
+    }
+
+    /* ─── CHAT ─── */
+    .chat {
+      flex: 1; overflow-y: auto;
+      padding: 14px 13px 6px;
+      display: flex; flex-direction: column; gap: 13px;
+      position: relative; z-index: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chat::-webkit-scrollbar { width: 3px; }
+    .chat::-webkit-scrollbar-thumb { background: rgba(107,158,120,0.25); border-radius: 2px; }
+
+    /* disclaimer */
+    .disclaimer {
+      background: rgba(240,205,176,0.3);
+      border: 1px solid rgba(240,205,176,0.6);
+      border-radius: 14px; padding: 10px 14px;
+      font-size: 0.73rem; color: var(--text-soft);
+      line-height: 1.55; text-align: center;
+      align-self: center; max-width: 88%;
+    }
+    .disclaimer strong { color: var(--text); }
+
+    /* message wrap */
+    .msg-wrap {
+      display: flex; flex-direction: column;
+      animation: fadeUp 0.28s ease;
+    }
+    .msg-wrap.user { align-items: flex-end; }
+    .msg-wrap.ai { align-items: flex-start; }
+
+    .ai-row { display: flex; align-items: flex-end; gap: 8px; }
+    .ai-mini-avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #9fc4a8, #6b9e78);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; box-shadow: 0 2px 8px rgba(107,158,120,0.3);
+    }
+
+    .bubble {
+      max-width: 80%; padding: 11px 15px;
+      font-size: 0.875rem; line-height: 1.65;
+      border-radius: 20px;
+    }
+    .bubble.user {
+      background: linear-gradient(135deg, #6b9e78, #4a7a55);
+      color: white;
+      border-bottom-right-radius: 5px;
+      box-shadow: 0 3px 14px rgba(107,158,120,0.38);
+    }
+    .bubble.ai {
+      background: var(--white);
+      color: var(--text);
+      border-bottom-left-radius: 5px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(107,158,120,0.1);
+    }
+
+    .bubble-time {
+      font-size: 0.62rem; color: var(--text-soft);
+      margin-top: 3px; padding: 0 5px;
+    }
+
+    /* quick replies */
+    .quick-replies {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-top: 6px; padding-left: 36px;
+    }
+    .qr-btn {
+      background: rgba(107,158,120,0.09);
+      border: 1px solid rgba(107,158,120,0.28);
+      border-radius: 14px; padding: 5px 13px;
+      font-size: 0.76rem; color: var(--sage-dark);
+      cursor: pointer; font-family: 'Nunito', sans-serif;
+      transition: all 0.15s;
+    }
+    .qr-btn:active { background: rgba(107,158,120,0.18); transform: scale(0.97); }
+
+    /* typing */
+    .typing-wrap { display: flex; align-items: flex-end; gap: 8px; }
+    .typing-bubble {
+      background: var(--white); border: 1px solid rgba(107,158,120,0.1);
+      border-radius: 20px; border-bottom-left-radius: 5px;
+      padding: 12px 16px; display: flex; gap: 5px; align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--sage-light);
+      animation: bounce 1.1s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.18s; }
+    .dot:nth-child(3) { animation-delay: 0.36s; }
+
+    /* ─── INPUT ─── */
+    .input-area {
+      position: relative; z-index: 20; flex-shrink: 0;
+      background: rgba(245,241,235,0.97);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(107,158,120,0.12);
+      padding: 10px 12px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      display: flex; align-items: flex-end; gap: 9px;
+    }
+
+    .textarea-wrap {
+      flex: 1;
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      border-radius: 22px; padding: 9px 14px;
+      display: flex; align-items: flex-end;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s;
+    }
+    .textarea-wrap:focus-within { border-color: var(--sage); }
+
+    textarea {
+      flex: 1; border: none; outline: none;
+      background: transparent;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem; color: var(--text);
+      resize: none; line-height: 1.5;
+      min-height: 22px; max-height: 110px;
+      overflow-y: auto;
+    }
+    textarea::placeholder { color: #b8aea6; }
+
+    .send-btn {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; transition: all 0.18s;
+      background: linear-gradient(135deg, #6b9e78, #4a7a55);
+      box-shadow: 0 3px 14px rgba(107,158,120,0.4);
+    }
+    .send-btn:disabled {
+      background: #d5cfc9; box-shadow: none; cursor: not-allowed;
+    }
+    .send-btn:not(:disabled):active { transform: scale(0.93); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30%           { transform: translateY(-5px); }
+    }
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(76,175,114,0.4); }
+      50%       { opacity: 0.85; box-shadow: 0 0 0 4px rgba(76,175,114,0); }
+    }
+
+    /* ─── DONASI BANNER ─── */
+    .donasi-banner {
+      position: relative; z-index: 10; flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(240,205,176,0.5), rgba(245,220,195,0.4));
+      border-bottom: 1px solid rgba(240,175,120,0.2);
+      padding: 8px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .donasi-text { flex: 1; font-size: 0.75rem; color: var(--text-soft); line-height: 1.4; }
+    .donasi-text strong { color: #a0522d; font-size: 0.78rem; }
+    .donasi-btn {
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #f4a460, #cd7f32);
+      color: white; border: none; border-radius: 20px;
+      padding: 7px 14px; font-size: 0.75rem; font-weight: 700;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer; white-space: nowrap;
+      box-shadow: 0 3px 10px rgba(205,127,50,0.35);
+      transition: all 0.18s;
+    }
+    .donasi-btn:active { transform: scale(0.96); }
+    .donasi-close {
+      font-size: 14px; color: var(--text-soft);
+      cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+    }
+
+    /* ─── DONASI MODAL ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(58,50,44,0.5);
+      backdrop-filter: blur(4px);
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--cream);
+      border-radius: 24px 24px 0 0;
+      padding: 24px 22px 32px;
+      width: 100%; max-width: 480px;
+      animation: slideUp 0.3s ease;
+    }
+    .modal-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: rgba(107,158,120,0.3);
+      margin: 0 auto 20px;
+    }
+    .modal-title {
+      font-family: 'Lora', serif;
+      font-size: 1.2rem; font-weight: 600;
+      color: var(--text); text-align: center; margin-bottom: 6px;
+    }
+    .modal-sub {
+      font-size: 0.8rem; color: var(--text-soft);
+      text-align: center; line-height: 1.5; margin-bottom: 20px;
+    }
+    .amount-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-bottom: 16px;
+    }
+    .amount-btn {
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      border-radius: 12px; padding: 10px 6px;
+      text-align: center; cursor: pointer;
+      transition: all 0.15s; font-family: 'Nunito', sans-serif;
+    }
+    .amount-btn .nominal { font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; }
+    .amount-btn .label { font-size: 0.65rem; color: var(--text-soft); }
+    .amount-btn:active, .amount-btn.selected {
+      border-color: var(--sage); background: rgba(107,158,120,0.08);
+    }
+    .amount-btn.selected .nominal { color: var(--sage-dark); }
+
+    .saweria-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #f4a460, #cd7f32);
+      color: white; border: none; border-radius: 16px;
+      padding: 14px; font-size: 0.95rem; font-weight: 700;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(205,127,50,0.4);
+      transition: all 0.18s; margin-bottom: 10px;
+    }
+    .saweria-btn:active { transform: scale(0.98); }
+
+    .modal-note {
+      font-size: 0.68rem; color: var(--text-soft);
+      text-align: center; line-height: 1.5;
+    }
+    .modal-note a { color: var(--sage-dark); }
+
+    /* ─── ERROR TOAST ─── */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: #e57373; color: white; border-radius: 12px;
+      padding: 10px 20px; font-size: 0.8rem; z-index: 999;
+      animation: fadeUp 0.3s ease;
+      box-shadow: 0 4px 15px rgba(229,115,115,0.4);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="avatar-wrap">
+    <div class="avatar">🌿</div>
+    <div class="online-dot"></div>
+  </div>
+  <div class="header-text">
+    <div class="header-name">Soulful</div>
+    <div class="header-sub">Teman cerita & kesehatan mental</div>
+  </div>
+  <div class="header-badge">AI GRATIS</div>
+</div>
+
+<!-- MOOD CHIPS -->
+<div class="mood-bar">
+  <div class="chip" onclick="useMood(this, 'Aku merasa sangat cemas hari ini')">😰 Cemas</div>
+  <div class="chip" onclick="useMood(this, 'Aku merasa sangat sedih dan tidak tahu kenapa')">😢 Sedih</div>
+  <div class="chip" onclick="useMood(this, 'Aku kelelahan dan burnout karena pekerjaan')">😮‍💨 Burnout</div>
+  <div class="chip" onclick="useMood(this, 'Aku susah tidur dan pikiranku tidak bisa tenang')">🌙 Sulit Tidur</div>
+  <div class="chip" onclick="useMood(this, 'Aku merasa sangat kesepian')">🫂 Kesepian</div>
+  <div class="chip" onclick="useMood(this, 'Aku merasa marah dan frustrasi')">😤 Frustrasi</div>
+  <div class="chip" onclick="useMood(this, 'Aku butuh motivasi untuk melanjutkan hari ini')">✨ Motivasi</div>
+  <div class="chip" onclick="useMood(this, 'Aku merasa overwhelmed dengan banyak hal')">🌀 Overwhelmed</div>
+</div>
+
+<!-- DONASI BANNER -->
+<div class="donasi-banner" id="donasBanner">
+  <div style="font-size:20px">☕</div>
+  <div class="donasi-text">
+    <strong>Soulful gratis untuk semua!</strong><br>
+    Bantu kami tetap beroperasi dengan donasi kecil 🌿
+  </div>
+  <button class="donasi-btn" onclick="openModal()">Traktir</button>
+  <span class="donasi-close" onclick="closeBanner()">✕</span>
+</div>
+
+<!-- DONASI MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;font-size:36px;margin-bottom:8px">☕</div>
+    <div class="modal-title">Traktir Soulful Kopi</div>
+    <div class="modal-sub">
+      Donasimu membantu Soulful tetap gratis untuk semua orang.<br>
+      Terima kasih sudah peduli! 🌿
+    </div>
+
+    <div class="amount-grid">
+      <div class="amount-btn selected" onclick="selectAmount(this, 5000)">
+        <span class="nominal">Rp 5rb</span>
+        <span class="label">Segelas teh 🍵</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 10000)">
+        <span class="nominal">Rp 10rb</span>
+        <span class="label">Secangkir kopi ☕</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 20000)">
+        <span class="nominal">Rp 20rb</span>
+        <span class="label">Kopi + cemilan 🍪</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 50000)">
+        <span class="nominal">Rp 50rb</span>
+        <span class="label">Super supporter 🌟</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 100000)">
+        <span class="nominal">Rp 100rb</span>
+        <span class="label">Hero Soulful 🦸</span>
+      </div>
+      <div class="amount-btn" onclick="selectAmount(this, 0)">
+        <span class="nominal">Bebas</span>
+        <span class="label">Nominal lain 💛</span>
+      </div>
+    </div>
+
+    <button class="saweria-btn" onclick="goSaweria()">
+      ☕ Donasi via Saweria
+    </button>
+    <div class="modal-note">
+      Kamu akan diarahkan ke halaman Saweria yang aman.<br>
+      Ganti <strong>namasaweriamu</strong> di kode dengan username Saweria kamu.<br>
+      <a href="https://saweria.co" target="_blank">Daftar Saweria gratis →</a>
+    </div>
+  </div>
+</div>
+
+
+<div class="chat" id="chat">
+  <div class="disclaimer">
+    🌿 Soulful adalah teman bicara AI, <strong>bukan pengganti psikolog profesional</strong>.
+    Jika kamu dalam krisis, hubungi <strong>Into The Light: 119 ext 8</strong>
+  </div>
+</div>
+
+<!-- INPUT -->
+<div class="input-area">
+  <div class="textarea-wrap">
+    <textarea id="inp" placeholder="Ceritakan perasaanmu..." rows="1"
+      oninput="onType(this)" onkeydown="onKey(event)"></textarea>
+  </div>
+  <button class="send-btn" id="sendBtn" onclick="send()" disabled>
+    <span style="color:white;line-height:1">↑</span>
+  </button>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+// Ganti dengan URL Vercel kamu setelah deploy
+const API_URL = 'https://YOUR-PROJECT.vercel.app/api/chat';
+// ──────────────────────────────────────────────────────────
+
+let history = [];
+let busy = false;
+
+// Init Telegram WebApp
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+// Welcome
+window.onload = () => {
+  setTimeout(() => addAI(
+    "Halo 🌿 Aku Soulful, teman cerita kamu.\n\nRuang ini aman — ceritakan apapun yang kamu rasakan tanpa takut dihakimi. Aku di sini untuk mendengarkan.\n\nBagaimana perasaanmu sekarang?",
+    ["Aku mau cerita...", "Ajari teknik relaksasi", "Aku butuh semangat hari ini", "Aku lagi sangat cemas"]
+  ), 400);
+};
+
+// ─── SEND ────────────────────────────────────────────────
+async function send() {
+  const inp = document.getElementById('inp');
+  const text = inp.value.trim();
+  if (!text || busy) return;
+
+  inp.value = ''; inp.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+  busy = true;
+
+  addUser(text);
+  history.push({ role: 'user', content: text });
+  showTyping();
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history })
+    });
+
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    const reply = data.reply;
+    history.push({ role: 'assistant', content: reply });
+    hideTyping();
+    addAI(reply, getQuickReplies(text));
+
+  } catch (err) {
+    hideTyping();
+    showToast('Koneksi bermasalah, coba lagi 🌿');
+    console.error(err);
+  }
+
+  busy = false;
+}
+
+// ─── ADD MESSAGES ────────────────────────────────────────
+function addUser(text) {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap user';
+  wrap.innerHTML = `
+    <div class="bubble user">${esc(text)}</div>
+    <div class="bubble-time">${now()}</div>
+  `;
+  chat.appendChild(wrap);
+  scrollBottom();
+}
+
+function addAI(text, qr = []) {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai';
+
+  const formatted = text.replace(/\n/g, '<br>');
+  wrap.innerHTML = `
+    <div class="ai-row">
+      <div class="ai-mini-avatar">🌿</div>
+      <div class="bubble ai">${formatted}</div>
+    </div>
+    <div class="bubble-time" style="padding-left:36px">${now()}</div>
+  `;
+
+  if (qr.length) {
+    const qrDiv = document.createElement('div');
+    qrDiv.className = 'quick-replies';
+    qr.forEach(q => {
+      const btn = document.createElement('button');
+      btn.className = 'qr-btn';
+      btn.textContent = q;
+      btn.onclick = () => {
+        document.getElementById('inp').value = q;
+        qrDiv.remove();
+        send();
+      };
+      qrDiv.appendChild(btn);
+    });
+    wrap.appendChild(qrDiv);
+  }
+
+  chat.appendChild(wrap);
+  scrollBottom();
+}
+
+// ─── TYPING ──────────────────────────────────────────────
+function showTyping() {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ai'; wrap.id = 'typing';
+  wrap.innerHTML = `
+    <div class="typing-wrap">
+      <div class="ai-mini-avatar">🌿</div>
+      <div class="typing-bubble">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>`;
+  chat.appendChild(wrap);
+  scrollBottom();
+}
+function hideTyping() { document.getElementById('typing')?.remove(); }
+
+// ─── MOOD CHIPS ───────────────────────────────────────────
+function useMood(el, text) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('inp').value = text;
+  send();
+  setTimeout(() => el.classList.remove('active'), 1500);
+}
+
+// ─── QUICK REPLIES ────────────────────────────────────────
+function getQuickReplies(msg) {
+  const m = msg.toLowerCase();
+  if (m.includes('cemas') || m.includes('panik') || m.includes('anxious'))
+    return ['Ajari teknik napas dalam', 'Apa yang membuatku cemas?', 'Teknik grounding 5-4-3-2-1'];
+  if (m.includes('sedih') || m.includes('nangis') || m.includes('menangis'))
+    return ['Aku mau cerita lebih', 'Kenapa aku merasa begini?', 'Bagaimana cara merasa lebih baik?'];
+  if (m.includes('tidur') || m.includes('insomnia') || m.includes('gelisah'))
+    return ['Tips tidur lebih baik', 'Teknik relaksasi sebelum tidur', 'Kenapa pikiranku tidak tenang?'];
+  if (m.includes('burnout') || m.includes('lelah') || m.includes('cape') || m.includes('capek'))
+    return ['Cara atasi burnout', 'Aku perlu istirahat', 'Tips menjaga energi'];
+  if (m.includes('kesepian') || m.includes('sendiri'))
+    return ['Aku butuh teman bicara', 'Bagaimana cara merasa terhubung?', 'Cerita lebih...'];
+  if (m.includes('motivasi') || m.includes('semangat'))
+    return ['Bantu aku mulai hari ini', 'Teknik motivasi diri', 'Aku merasa stuck'];
+  return ['Ceritakan lebih lanjut', 'Apa yang bisa kulakukan sekarang?', 'Ajari teknik relaksasi'];
+}
+
+// ─── HELPERS ─────────────────────────────────────────────
+function scrollBottom() {
+  const chat = document.getElementById('chat');
+  setTimeout(() => chat.scrollTop = chat.scrollHeight, 50);
+}
+
+function now() {
+  return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+}
+
+function esc(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function onType(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+  document.getElementById('sendBtn').disabled = !el.value.trim();
+}
+
+
+// ─── DONASI SAWERIA ───────────────────────────────────────
+// Ganti 'namasaweriamu' dengan username Saweria kamu!
+const SAWERIA_USERNAME = 'namasaweriamu';
+
+let selectedAmount = 5000;
+let bannerDismissed = false;
+
+function selectAmount(el, amount) {
+  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAmount = amount;
+}
+
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function closeBanner() {
+  document.getElementById('donasBanner').style.display = 'none';
+  bannerDismissed = true;
+  // Tampilkan lagi setelah 10 pesan
+  localStorage.setItem('soulful_banner_closed', Date.now());
+}
+
+function goSaweria() {
+  const url = selectedAmount > 0
+    ? `https://saweria.co/${SAWERIA_USERNAME}?amount=${selectedAmount}`
+    : `https://saweria.co/${SAWERIA_USERNAME}`;
+  // Buka via Telegram jika tersedia, fallback ke window.open
+  if (tg?.openLink) tg.openLink(url);
+  else window.open(url, '_blank');
+  closeModal();
+  // Tampilkan pesan terima kasih di chat
+  setTimeout(() => {
+    addAI('Terima kasih banyak sudah mendukung Soulful! 💛☕\n\nDonasimu membantu kami tetap gratis untuk semua orang yang membutuhkan dukungan mental. Kamu luar biasa! 🌿');
+  }, 500);
+}
+
+// Tampilkan banner donasi setelah 5 pesan
+let msgCount = 0;
+const origSend = send;
+
+// Cek apakah banner pernah ditutup hari ini
+const lastClosed = localStorage.getItem('soulful_banner_closed');
+if (lastClosed && Date.now() - lastClosed < 86400000) {
+  document.getElementById('donasBanner').style.display = 'none';
+}
+</script>
+</body>
+</html>
