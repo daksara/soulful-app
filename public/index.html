@@ -93,6 +93,21 @@
       letter-spacing: 0.04em;
     }
 
+    .lang-toggle {
+      display: flex; align-items: center;
+      background: var(--white);
+      border: 1.5px solid rgba(107,158,120,0.2);
+      border-radius: 20px; overflow: hidden;
+      box-shadow: var(--shadow-sm); flex-shrink: 0;
+    }
+    .lang-btn {
+      border: none; background: transparent; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-size: 0.68rem; font-weight: 700;
+      color: var(--text-soft); padding: 4px 10px;
+      transition: all 0.18s; letter-spacing: 0.03em;
+    }
+    .lang-btn.active { background: var(--sage); color: white; }
+
     /* ─── MOOD BAR ─── */
     .mood-bar {
       position: relative; z-index: 10; flex-shrink: 0;
@@ -394,28 +409,32 @@
     <div class="header-sub">Teman cerita & kesehatan mental</div>
   </div>
   <div class="header-badge">AI GRATIS</div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btnID" onclick="setLang('id')">ID</button>
+    <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
+  </div>
 </div>
 
 <!-- MOOD CHIPS -->
-<div class="mood-bar">
-  <div class="chip" onclick="useMood(this, 'Aku merasa sangat cemas hari ini')">😰 Cemas</div>
-  <div class="chip" onclick="useMood(this, 'Aku merasa sangat sedih dan tidak tahu kenapa')">😢 Sedih</div>
-  <div class="chip" onclick="useMood(this, 'Aku kelelahan dan burnout karena pekerjaan')">😮‍💨 Burnout</div>
-  <div class="chip" onclick="useMood(this, 'Aku susah tidur dan pikiranku tidak bisa tenang')">🌙 Sulit Tidur</div>
-  <div class="chip" onclick="useMood(this, 'Aku merasa sangat kesepian')">🫂 Kesepian</div>
-  <div class="chip" onclick="useMood(this, 'Aku merasa marah dan frustrasi')">😤 Frustrasi</div>
-  <div class="chip" onclick="useMood(this, 'Aku butuh motivasi untuk melanjutkan hari ini')">✨ Motivasi</div>
-  <div class="chip" onclick="useMood(this, 'Aku merasa overwhelmed dengan banyak hal')">🌀 Overwhelmed</div>
+<div class="mood-bar" id="moodBar">
+  <div class="chip" onclick="useMood(this, getLangText('moodAnxious'))">😰 <span data-id="Cemas" data-en="Anxious">Cemas</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodSad'))">😢 <span data-id="Sedih" data-en="Sad">Sedih</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodBurnout'))">😮‍💨 <span data-id="Burnout" data-en="Burnout">Burnout</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodSleep'))">🌙 <span data-id="Sulit Tidur" data-en="Can't Sleep">Sulit Tidur</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodLonely'))">🫂 <span data-id="Kesepian" data-en="Lonely">Kesepian</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodFrust'))">😤 <span data-id="Frustrasi" data-en="Frustrated">Frustrasi</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodMotiv'))">✨ <span data-id="Motivasi" data-en="Motivation">Motivasi</span></div>
+  <div class="chip" onclick="useMood(this, getLangText('moodOverwhelm'))">🌀 <span data-id="Overwhelmed" data-en="Overwhelmed">Overwhelmed</span></div>
 </div>
 
 <!-- DONASI BANNER -->
 <div class="donasi-banner" id="donasBanner">
   <div style="font-size:20px">☕</div>
   <div class="donasi-text">
-    <strong>Soulful gratis untuk semua!</strong><br>
-    Bantu kami tetap beroperasi dengan donasi kecil 🌿
+    <strong data-id="Soulful gratis untuk semua!" data-en="Soulful is free for everyone!">Soulful gratis untuk semua!</strong><br>
+    <span data-id="Bantu kami tetap beroperasi dengan donasi kecil 🌿" data-en="Help us stay running with a small donation 🌿">Bantu kami tetap beroperasi dengan donasi kecil 🌿</span>
   </div>
-  <button class="donasi-btn" onclick="openModal()">Traktir</button>
+  <button class="donasi-btn" onclick="openModal()" data-id="Traktir" data-en="Support">Traktir</button>
   <span class="donasi-close" onclick="closeBanner()">✕</span>
 </div>
 
@@ -470,7 +489,7 @@
 
 
 <div class="chat" id="chat">
-  <div class="disclaimer">
+  <div class="disclaimer" id="disclaimer">
     🌿 Soulful adalah teman bicara AI, <strong>bukan pengganti psikolog profesional</strong>.
     Jika kamu dalam krisis, hubungi <strong>Into The Light: 119 ext 8</strong>
   </div>
@@ -492,27 +511,127 @@
 // API Key disimpan aman di Vercel Environment Variables
 // Frontend hanya memanggil /api/chat (proxy internal)
 
-const SYSTEM_PROMPT = `Kamu adalah Soulful, AI pendamping kesehatan mental yang hangat dan empatik.
+// ─── LANGUAGE ─────────────────────────────────────────────
+let lang = localStorage.getItem('soulful_lang') || 'id';
+
+const T = {
+  id: {
+    headerSub: 'Teman cerita & kesehatan mental',
+    placeholder: 'Ceritakan perasaanmu...',
+    disclaimer: '🌿 Soulful adalah teman bicara AI, <strong>bukan pengganti psikolog profesional</strong>. Jika kamu dalam krisis, hubungi <strong>Into The Light: 119 ext 8</strong>',
+    welcome: 'Halo 🌿 Aku Soulful, teman cerita kamu.\n\nRuang ini aman — ceritakan apapun yang kamu rasakan tanpa takut dihakimi. Aku di sini untuk mendengarkan.\n\nBagaimana perasaanmu sekarang?',
+    welcomeQR: ['Aku mau cerita...', 'Ajari teknik relaksasi', 'Aku butuh semangat hari ini', 'Aku lagi sangat cemas'],
+    noReply: 'Maaf, tidak ada respons.',
+    modalTitle: 'Traktir Soulful Kopi',
+    modalSub: 'Donasimu membantu Soulful tetap gratis untuk semua orang.\nTerima kasih sudah peduli! 🌿',
+    saweriaBtn: '☕ Donasi via Saweria',
+    modalNote: 'Kamu akan diarahkan ke halaman Saweria yang aman.',
+    thankYou: 'Terima kasih banyak sudah mendukung Soulful! 💛☕\n\nDonasimu membantu kami tetap gratis untuk semua orang yang membutuhkan dukungan mental. Kamu luar biasa! 🌿',
+    moodAnxious: 'Aku merasa sangat cemas hari ini',
+    moodSad: 'Aku merasa sangat sedih dan tidak tahu kenapa',
+    moodBurnout: 'Aku kelelahan dan burnout karena pekerjaan',
+    moodSleep: 'Aku susah tidur dan pikiranku tidak bisa tenang',
+    moodLonely: 'Aku merasa sangat kesepian',
+    moodFrust: 'Aku merasa marah dan frustrasi',
+    moodMotiv: 'Aku butuh motivasi untuk melanjutkan hari ini',
+    moodOverwhelm: 'Aku merasa overwhelmed dengan banyak hal',
+    systemPrompt: `Kamu adalah Soulful, AI pendamping kesehatan mental yang hangat dan empatik.
 Dengarkan dengan penuh perhatian tanpa menghakimi. Validasi perasaan pengguna terlebih dahulu.
 Gunakan pendekatan CBT sederhana. Berikan teknik praktis: napas dalam, grounding, journaling.
 Bahasa Indonesia yang hangat dan lembut. JANGAN mendiagnosis kondisi mental.
 Jika ada tanda bahaya, arahkan ke: Into The Light 119 ext 8.
-FORMAT: 2-3 paragraf pendek, akhiri dengan 1 pertanyaan reflektif.`;
-// ──────────────────────────────────────────────────────────
+FORMAT: 2-3 paragraf pendek, akhiri dengan 1 pertanyaan reflektif.`,
+  },
+  en: {
+    headerSub: 'Your mental wellness companion',
+    placeholder: 'Share how you feel...',
+    disclaimer: '🌿 Soulful is an AI companion, <strong>not a replacement for a professional therapist</strong>. If you are in crisis, please call <strong>988 Suicide & Crisis Lifeline: 988</strong>',
+    welcome: 'Hello 🌿 I\'m Soulful, your safe space to talk.\n\nThis is a judgment-free zone — share anything you\'re feeling. I\'m here to listen.\n\nHow are you feeling right now?',
+    welcomeQR: ['I want to talk...', 'Teach me relaxation techniques', 'I need motivation today', 'I\'m feeling very anxious'],
+    noReply: 'Sorry, no response received.',
+    modalTitle: 'Buy Soulful a Coffee',
+    modalSub: 'Your donation helps keep Soulful free for everyone.\nThank you for caring! 🌿',
+    saweriaBtn: '☕ Donate via Saweria',
+    modalNote: 'You\'ll be redirected to the secure Saweria page.',
+    thankYou: 'Thank you so much for supporting Soulful! 💛☕\n\nYour donation helps us stay free for everyone who needs mental health support. You\'re amazing! 🌿',
+    moodAnxious: 'I am feeling very anxious today',
+    moodSad: 'I feel very sad and I don\'t know why',
+    moodBurnout: 'I am exhausted and burned out from work',
+    moodSleep: 'I can\'t sleep and my mind won\'t quiet down',
+    moodLonely: 'I feel very lonely',
+    moodFrust: 'I feel angry and frustrated',
+    moodMotiv: 'I need motivation to get through today',
+    moodOverwhelm: 'I feel overwhelmed by everything',
+    systemPrompt: `You are Soulful, a warm and empathetic AI mental wellness companion.
+Listen attentively without judgment. Always validate the user's feelings first.
+Use simple CBT approaches. Provide practical techniques: deep breathing, grounding, journaling.
+Use warm, gentle English. Do NOT diagnose any mental conditions.
+If there are danger signs, refer to: 988 Suicide & Crisis Lifeline (call or text 988).
+FORMAT: 2-3 short paragraphs, end with 1 reflective question.`,
+  }
+};
 
+function getLangText(key) { return T[lang][key]; }
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('soulful_lang', lang);
+  document.getElementById('btnID').classList.toggle('active', l === 'id');
+  document.getElementById('btnEN').classList.toggle('active', l === 'en');
+  applyLang();
+}
+
+function applyLang() {
+  const t = T[lang];
+  // header subtitle
+  document.querySelector('.header-sub').textContent = t.headerSub;
+  // placeholder
+  document.getElementById('inp').placeholder = t.placeholder;
+  // disclaimer
+  document.getElementById('disclaimer').innerHTML = t.disclaimer;
+  // modal
+  document.querySelector('.modal-title').textContent = t.modalTitle;
+  document.querySelector('.modal-sub').innerHTML = t.modalSub.replace('\n', '<br>');
+  document.querySelector('.saweria-btn').textContent = t.saweriaBtn;
+  document.querySelector('.modal-note').childNodes[0].textContent = t.modalNote;
+  // mood chip spans
+  document.querySelectorAll('.mood-bar .chip span').forEach(span => {
+    span.textContent = span.dataset[lang];
+  });
+  // banner button
+  const donaBtn = document.querySelector('.donasi-btn');
+  donaBtn.textContent = lang === 'id' ? 'Traktir' : 'Support';
+  // banner text
+  const bannerStrong = document.querySelector('.donasi-text strong');
+  bannerStrong.textContent = lang === 'id' ? 'Soulful gratis untuk semua!' : 'Soulful is free for everyone!';
+  const bannerSpan = document.querySelector('.donasi-text span');
+  bannerSpan.textContent = lang === 'id'
+    ? 'Bantu kami tetap beroperasi dengan donasi kecil 🌿'
+    : 'Help us stay running with a small donation 🌿';
+}
+
+// ─── INIT ─────────────────────────────────────────────────
 let history = [];
 let busy = false;
 
-// Init Telegram WebApp
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
-// Welcome
 window.onload = () => {
-  setTimeout(() => addAI(
-    "Halo 🌿 Aku Soulful, teman cerita kamu.\n\nRuang ini aman — ceritakan apapun yang kamu rasakan tanpa takut dihakimi. Aku di sini untuk mendengarkan.\n\nBagaimana perasaanmu sekarang?",
-    ["Aku mau cerita...", "Ajari teknik relaksasi", "Aku butuh semangat hari ini", "Aku lagi sangat cemas"]
-  ), 400);
+  // Apply saved language
+  if (lang === 'en') {
+    document.getElementById('btnID').classList.remove('active');
+    document.getElementById('btnEN').classList.add('active');
+  }
+  applyLang();
+
+  setTimeout(() => addAI(T[lang].welcome, T[lang].welcomeQR), 400);
+
+  // Hide banner if closed today
+  const lastClosed = localStorage.getItem('soulful_banner_closed');
+  if (lastClosed && Date.now() - lastClosed < 86400000) {
+    document.getElementById('donasBanner').style.display = 'none';
+  }
 };
 
 // ─── SEND ────────────────────────────────────────────────
@@ -532,12 +651,10 @@ async function send() {
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: T[lang].systemPrompt },
           ...history
         ]
       })
@@ -547,7 +664,7 @@ async function send() {
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
 
-    const reply = data.choices?.[0]?.message?.content || 'Maaf, tidak ada respons.';
+    const reply = data.choices?.[0]?.message?.content || T[lang].noReply;
     history.push({ role: 'assistant', content: reply });
     hideTyping();
     addAI(reply, getQuickReplies(text));
@@ -578,7 +695,6 @@ function addAI(text, qr = []) {
   const chat = document.getElementById('chat');
   const wrap = document.createElement('div');
   wrap.className = 'msg-wrap ai';
-
   const formatted = text.replace(/\n/g, '<br>');
   wrap.innerHTML = `
     <div class="ai-row">
@@ -587,7 +703,6 @@ function addAI(text, qr = []) {
     </div>
     <div class="bubble-time" style="padding-left:36px">${now()}</div>
   `;
-
   if (qr.length) {
     const qrDiv = document.createElement('div');
     qrDiv.className = 'quick-replies';
@@ -595,16 +710,11 @@ function addAI(text, qr = []) {
       const btn = document.createElement('button');
       btn.className = 'qr-btn';
       btn.textContent = q;
-      btn.onclick = () => {
-        document.getElementById('inp').value = q;
-        qrDiv.remove();
-        send();
-      };
+      btn.onclick = () => { document.getElementById('inp').value = q; qrDiv.remove(); send(); };
       qrDiv.appendChild(btn);
     });
     wrap.appendChild(qrDiv);
   }
-
   chat.appendChild(wrap);
   scrollBottom();
 }
@@ -638,6 +748,21 @@ function useMood(el, text) {
 // ─── QUICK REPLIES ────────────────────────────────────────
 function getQuickReplies(msg) {
   const m = msg.toLowerCase();
+  if (lang === 'en') {
+    if (m.includes('anxi') || m.includes('panic') || m.includes('worry'))
+      return ['Teach me deep breathing', 'What\'s making me anxious?', '5-4-3-2-1 grounding technique'];
+    if (m.includes('sad') || m.includes('cry') || m.includes('depress'))
+      return ['I want to share more', 'Why do I feel this way?', 'How can I feel better?'];
+    if (m.includes('sleep') || m.includes('insomnia') || m.includes('restless'))
+      return ['Tips for better sleep', 'Relaxation before bed', 'Why can\'t my mind settle?'];
+    if (m.includes('burnout') || m.includes('tired') || m.includes('exhaust'))
+      return ['How to overcome burnout', 'I need to rest', 'Tips to maintain energy'];
+    if (m.includes('lonely') || m.includes('alone') || m.includes('isolated'))
+      return ['I need someone to talk to', 'How to feel more connected?', 'Tell me more...'];
+    if (m.includes('motiv') || m.includes('stuck') || m.includes('unmotiv'))
+      return ['Help me start today', 'Self-motivation techniques', 'I feel stuck'];
+    return ['Tell me more', 'What can I do right now?', 'Teach me a relaxation technique'];
+  }
   if (m.includes('cemas') || m.includes('panik') || m.includes('anxious'))
     return ['Ajari teknik napas dalam', 'Apa yang membuatku cemas?', 'Teknik grounding 5-4-3-2-1'];
   if (m.includes('sedih') || m.includes('nangis') || m.includes('menangis'))
@@ -658,33 +783,29 @@ function scrollBottom() {
   const chat = document.getElementById('chat');
   setTimeout(() => chat.scrollTop = chat.scrollHeight, 50);
 }
-
 function now() {
   return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 }
-
 function esc(t) {
   return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 }
-
 function showToast(msg) {
   const t = document.createElement('div');
   t.className = 'toast'; t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3000);
 }
-
 function onType(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 110) + 'px';
   document.getElementById('sendBtn').disabled = !el.value.trim();
 }
-
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
 
 // ─── DONASI SAWERIA ───────────────────────────────────────
-// Ganti 'namasaweriamu' dengan username Saweria kamu!
 const SAWERIA_USERNAME = 'daksarasoulful';
-
 let selectedAmount = 5000;
 let bannerDismissed = false;
 
@@ -693,48 +814,24 @@ function selectAmount(el, amount) {
   el.classList.add('selected');
   selectedAmount = amount;
 }
-
-function openModal() {
-  document.getElementById('modalOverlay').classList.add('open');
-}
-
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-
+function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 function closeModalOutside(e) {
   if (e.target === document.getElementById('modalOverlay')) closeModal();
 }
-
 function closeBanner() {
   document.getElementById('donasBanner').style.display = 'none';
   bannerDismissed = true;
-  // Tampilkan lagi setelah 10 pesan
   localStorage.setItem('soulful_banner_closed', Date.now());
 }
-
 function goSaweria() {
   const url = selectedAmount > 0
     ? `https://saweria.co/${SAWERIA_USERNAME}?amount=${selectedAmount}`
     : `https://saweria.co/${SAWERIA_USERNAME}`;
-  // Buka via Telegram jika tersedia, fallback ke window.open
   if (tg?.openLink) tg.openLink(url);
   else window.open(url, '_blank');
   closeModal();
-  // Tampilkan pesan terima kasih di chat
-  setTimeout(() => {
-    addAI('Terima kasih banyak sudah mendukung Soulful! 💛☕\n\nDonasimu membantu kami tetap gratis untuk semua orang yang membutuhkan dukungan mental. Kamu luar biasa! 🌿');
-  }, 500);
-}
-
-// Tampilkan banner donasi setelah 5 pesan
-let msgCount = 0;
-const origSend = send;
-
-// Cek apakah banner pernah ditutup hari ini
-const lastClosed = localStorage.getItem('soulful_banner_closed');
-if (lastClosed && Date.now() - lastClosed < 86400000) {
-  document.getElementById('donasBanner').style.display = 'none';
+  setTimeout(() => addAI(T[lang].thankYou), 500);
 }
 </script>
 </body>
