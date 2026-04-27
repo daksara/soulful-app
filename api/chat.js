@@ -1,9 +1,46 @@
 import crypto from 'crypto';
 
-// ─── RATE LIMIT ───────────────────────────────────────────
-const rateLimitMap = new Map();
+// ─── UPSTASH REDIS RATE LIMIT ─────────────────────────────
+async function isRateLimited(key) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-function isRateLimited(key) {
+  // Fallback ke in-memory kalau Upstash belum dikonfigurasi
+  if (!url || !token) return inMemoryRateLimit(key);
+
+  try {
+    const windowMs = 60;  // detik
+    const maxReq = 10;
+    const redisKey = `rl:${key}`;
+
+    // INCR + EXPIRE dalam satu pipeline
+    const pipeline = [
+      ['INCR', redisKey],
+      ['EXPIRE', redisKey, windowMs]
+    ];
+
+    const res = await fetch(`${url}/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(pipeline)
+    });
+
+    const data = await res.json();
+    const count = data?.[0]?.result;
+    return count > maxReq;
+
+  } catch {
+    // Kalau Redis error, jangan blokir user
+    return false;
+  }
+}
+
+// ─── IN-MEMORY FALLBACK ───────────────────────────────────
+const rateLimitMap = new Map();
+function inMemoryRateLimit(key) {
   const now = Date.now();
   const windowMs = 60 * 1000;
   const maxReq = 10;
@@ -24,14 +61,12 @@ function validateTelegramInitData(initData, botToken) {
     const hash = params.get('hash');
     if (!hash) return null;
 
-    // Build data-check-string (semua key kecuali hash, diurutkan)
     params.delete('hash');
     const dataCheckArr = [];
     params.forEach((val, key) => dataCheckArr.push(`${key}=${val}`));
     dataCheckArr.sort();
     const dataCheckString = dataCheckArr.join('\n');
 
-    // HMAC-SHA256: key = HMAC("WebAppData", botToken), data = dataCheckString
     const secretKey = crypto
       .createHmac('sha256', 'WebAppData')
       .update(botToken)
@@ -46,10 +81,8 @@ function validateTelegramInitData(initData, botToken) {
 
     // Cek expiry — initData valid 24 jam
     const authDate = parseInt(params.get('auth_date') || '0', 10);
-    const age = Date.now() / 1000 - authDate;
-    if (age > 86400) return null;
+    if (Date.now() / 1000 - authDate > 86400) return null;
 
-    // Return parsed user
     const userStr = params.get('user');
     return userStr ? JSON.parse(userStr) : null;
 
@@ -83,7 +116,6 @@ export default async function handler(req, res) {
     }
     verifiedUserId = String(tgUser.id);
   } else {
-    // Mode dev/fallback: pakai userId dari body atau IP
     const ip =
       req.headers['x-forwarded-for']?.split(',')[0] ||
       req.socket?.remoteAddress ||
@@ -91,8 +123,9 @@ export default async function handler(req, res) {
     verifiedUserId = userId || ip;
   }
 
-  // ─── Rate limit ───────────────────────────────────────
-  if (isRateLimited(verifiedUserId)) {
+  // ─── Rate limit (Upstash Redis) ───────────────────────
+  const limited = await isRateLimited(verifiedUserId);
+  if (limited) {
     return res.status(429).json({
       error: 'Kamu terlalu cepat kirim pesan. Tunggu sebentar ya 🌿'
     });
@@ -145,8 +178,7 @@ export default async function handler(req, res) {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      res.write(chunk);
+      res.write(decoder.decode(value, { stream: true }));
     }
 
     res.end();
