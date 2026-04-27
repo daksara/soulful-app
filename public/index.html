@@ -574,11 +574,18 @@ FORMAT: 2-3 short paragraphs, end with 1 reflective question.`,
 function getLangText(key) { return T[lang][key]; }
 
 function setLang(l) {
+  if (lang === l) return;
   lang = l;
   localStorage.setItem('soulful_lang', lang);
   document.getElementById('btnID').classList.toggle('active', l === 'id');
   document.getElementById('btnEN').classList.toggle('active', l === 'en');
   applyLang();
+
+  // Reset chat & history
+  history = [];
+  const chat = document.getElementById('chat');
+  chat.innerHTML = `<div class="disclaimer" id="disclaimer">${T[lang].disclaimer}</div>`;
+  setTimeout(() => addAI(T[lang].welcome, T[lang].welcomeQR), 300);
 }
 
 function applyLang() {
