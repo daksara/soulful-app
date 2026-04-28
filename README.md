@@ -1,129 +1,144 @@
-# 🌿 Soulful — AI Psikolog Telegram Mini App
+# 🌿 Soulful
 
-Bot Telegram Mini App kesehatan mental berbasis Groq AI (gratis selamanya).
-User tidak perlu input API key apapun!
+> AI mental wellness companion for Telegram — free, private, and always available.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/daksaras/soulful)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
 
 ---
 
-## 📁 Struktur Project
+## ✨ Features
+
+- 💬 **AI Chat** — Empathetic conversations powered by Groq (LLaMA 3.3 70B)
+- 🌍 **Bilingual** — Indonesian & English, switchable anytime
+- 📊 **Mood Tracker** — Log daily mood with 7-day emoji calendar
+- 🫁 **Breathing Exercise** — Interactive deep breathing with 3 patterns
+- 🆘 **Crisis Detection** — Auto-shows emergency hotline for at-risk messages
+- ☕ **Saweria Donation** — Built-in support button
+- 🌙 **Dark Mode** — Follows system preference automatically
+- 🔒 **Secure** — Telegram initData validation + Upstash Redis rate limiting
+
+---
+
+## 🚀 Quick Start
+
+### 1. Clone & Setup
+
+```bash
+git clone https://github.com/daksaras/soulful.git
+cd soulful
+```
+
+### 2. Environment Variables
+
+Copy `.env.example` and fill in your keys:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Description |
+|----------|-------------|
+| `GROQ_API_KEY` | Get from [console.groq.com](https://console.groq.com) |
+| `TELEGRAM_BOT_TOKEN` | Get from [@BotFather](https://t.me/BotFather) |
+| `UPSTASH_REDIS_REST_URL` | Get from [upstash.com](https://upstash.com) |
+| `UPSTASH_REDIS_REST_TOKEN` | Get from [upstash.com](https://upstash.com) |
+
+### 3. Deploy to Vercel
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+Or click the **Deploy** button at the top of this README.
+
+### 4. Set Telegram Mini App
+
+1. Open [@BotFather](https://t.me/BotFather)
+2. `/mybots` → select your bot
+3. **Bot Settings → Menu Button** → set URL to your Vercel domain
+
+---
+
+## 📁 Project Structure
 
 ```
 soulful/
 ├── api/
-│   └── chat.js          ← Backend serverless (Vercel)
+│   └── chat.js          # Serverless proxy — Groq API + rate limiting + validation
 ├── public/
-│   └── index.html       ← Frontend Mini App
-├── vercel.json          ← Konfigurasi Vercel
-└── README.md
+│   └── index.html       # Frontend — all UI, logic, and styles in one file
+├── .github/
+│   └── ISSUE_TEMPLATE/  # Bug report & feature request templates
+├── .env.example         # Environment variable template
+├── .gitignore           # Git ignore rules
+├── CHANGELOG.md         # Version history
+├── CONTRIBUTING.md      # Contribution guide
+├── vercel.json          # Vercel routing config
+└── README.md            # This file
 ```
 
 ---
 
-## 🚀 Cara Deploy (15 menit)
+## 🔒 Security
 
-### Langkah 1 — Dapatkan Groq API Key (Gratis)
-
-1. Buka https://console.groq.com
-2. Daftar akun gratis
-3. Buat API Key → salin
-
----
-
-### Langkah 2 — Deploy ke Vercel
-
-1. Buka https://vercel.com → login dengan GitHub
-2. Klik **"Add New Project"**
-3. Upload folder `soulful` ini (atau push ke GitHub dulu)
-4. Di bagian **Environment Variables**, tambahkan:
-   - Key: `GROQ_API_KEY`
-   - Value: `gsk_xxxxxxxxxxxxxxx` (API key Groq kamu)
-5. Klik **Deploy**
-6. Salin URL deploy, contoh: `https://soulful-abc123.vercel.app`
+- **Telegram initData** validated server-side via HMAC-SHA256
+- **API key** never exposed to client — all calls go through `/api/chat`
+- **Rate limiting** via Upstash Redis — 10 requests/minute per user
+- **Input validation** — max 1000 chars, last 12 messages only sent to Groq
 
 ---
 
-### Langkah 3 — Update URL di Frontend
+## 🛠️ Tech Stack
 
-Buka `public/index.html`, cari baris:
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Vanilla HTML/CSS/JS (single file) |
+| AI | Groq API — LLaMA 3.3 70B |
+| Backend | Vercel Serverless Functions |
+| Rate Limit | Upstash Redis |
+| Platform | Telegram Mini App |
 
-```javascript
-const API_URL = 'https://YOUR-PROJECT.vercel.app/api/chat';
+---
+
+## 📝 Environment Setup (Vercel Dashboard)
+
+Go to **Project → Settings → Environment Variables** and add:
+
+```
+GROQ_API_KEY=gsk_...
+TELEGRAM_BOT_TOKEN=123456:ABC...
+UPSTASH_REDIS_REST_URL=https://...upstash.io
+UPSTASH_REDIS_REST_TOKEN=AX...
 ```
 
-Ganti dengan URL Vercel kamu:
+---
 
-```javascript
-const API_URL = 'https://soulful-abc123.vercel.app/api/chat';
-```
+## 🤝 Contributing
 
-Lalu deploy ulang (push ke GitHub → auto deploy).
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.  
+Found a bug? Open an [issue](../../issues/new?template=bug_report.md).
 
 ---
 
-### Langkah 4 — Buat Bot Telegram
+## 📋 Changelog
 
-1. Buka Telegram → cari **@BotFather**
-2. Ketik `/newbot`
-3. Ikuti instruksi → salin **Bot Token**
-4. Ketik `/newapp` di BotFather
-5. Pilih bot kamu → isi:
-   - **Title**: Soulful
-   - **Description**: AI Teman Kesehatan Mental
-   - **Photo**: upload gambar (opsional)
-   - **Web App URL**: `https://soulful-abc123.vercel.app`
-6. Selesai! 🎉
-
----
-
-### Langkah 5 — Tambah Tombol ke Bot (Opsional)
-
-Untuk menampilkan tombol "Buka Soulful" di bot:
-
-```python
-# bot.py — pakai python-telegram-bot
-from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-
-TOKEN = "YOUR_BOT_TOKEN"
-WEBAPP_URL = "https://soulful-abc123.vercel.app"
-
-async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[InlineKeyboardButton(
-        "🌿 Buka Soulful",
-        web_app=WebAppInfo(url=WEBAPP_URL)
-    )]]
-    await update.message.reply_text(
-        "Halo! Aku Soulful 🌿\nTeman cerita & kesehatan mentalmu.",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
-
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.run_polling()
-```
-
-Deploy bot ini di Railway (gratis):
-1. Push ke GitHub
-2. Buka https://railway.app → New Project → GitHub
-3. Tambah env var: `TOKEN=your_bot_token`
-4. Deploy!
-
----
-
-## 💰 Biaya
-
-| Layanan | Biaya |
-|---------|-------|
-| Vercel (hosting) | **GRATIS** selamanya |
-| Groq API (AI) | **GRATIS** ~14.4 juta token/hari |
-| Railway (bot) | **GRATIS** $5 kredit/bulan |
-| Telegram | **GRATIS** selamanya |
-
-**Total: Rp 0 / bulan** 🎉
+See [CHANGELOG.md](./CHANGELOG.md) for version history.
 
 ---
 
 ## ⚠️ Disclaimer
 
-Soulful adalah AI pendamping, bukan pengganti psikolog profesional.
-Jika ada pengguna dalam krisis: Into The Light Indonesia **119 ext 8**
+Soulful is an AI companion, **not a replacement for professional mental health care**.  
+If you are in crisis, please contact **Into The Light Indonesia: 119 ext 8** (free, 24/7).
+
+---
+
+## 📄 License
+
+MIT © [Daksara](https://github.com/daksaras)
