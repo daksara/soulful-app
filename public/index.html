@@ -492,6 +492,86 @@
     }
     .crisis-continue-btn:active { background: rgba(107,158,120,0.06); }
 
+    /* ─── ONBOARDING ─── */
+    .onboarding {
+      display: none;
+      position: fixed; inset: 0; z-index: 300;
+      background: var(--cream);
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .onboarding.open { display: flex; }
+
+    .onboarding-logo {
+      font-size: 3rem; margin-bottom: 12px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .onboarding-title {
+      font-family: 'Lora', serif;
+      font-size: 1.6rem; font-weight: 600;
+      color: var(--text); margin-bottom: 6px;
+    }
+    .onboarding-sub {
+      font-size: 0.82rem; color: var(--text-soft);
+      line-height: 1.6; margin-bottom: 36px;
+      max-width: 280px;
+    }
+    .onboarding-question {
+      font-size: 0.9rem; font-weight: 700;
+      color: var(--text); margin-bottom: 16px;
+      letter-spacing: 0.01em;
+    }
+    .age-options {
+      display: flex; gap: 12px; width: 100%;
+      max-width: 320px; margin-bottom: 32px;
+    }
+    .age-btn {
+      flex: 1; background: var(--white);
+      border: 2px solid rgba(107,158,120,0.2);
+      border-radius: 20px; padding: 20px 12px;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+      box-shadow: var(--shadow-sm);
+    }
+    .age-btn:active { transform: scale(0.97); }
+    .age-btn.selected {
+      border-color: var(--sage);
+      background: rgba(107,158,120,0.08);
+      box-shadow: 0 0 0 3px rgba(107,158,120,0.15);
+    }
+    .age-btn-emoji { font-size: 2rem; }
+    .age-btn-label {
+      font-size: 0.82rem; font-weight: 700;
+      color: var(--text); font-family: 'Nunito', sans-serif;
+    }
+    .age-btn-range {
+      font-size: 0.68rem; color: var(--text-soft);
+    }
+    .onboarding-start-btn {
+      width: 100%; max-width: 320px;
+      background: linear-gradient(135deg, #6b9e78, #4a7a55);
+      color: white; border: none; border-radius: 18px;
+      padding: 15px; font-size: 0.95rem; font-weight: 700;
+      font-family: 'Nunito', sans-serif; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(107,158,120,0.35);
+      transition: all 0.18s; opacity: 0.4; pointer-events: none;
+    }
+    .onboarding-start-btn.ready {
+      opacity: 1; pointer-events: all;
+    }
+    .onboarding-start-btn.ready:active { transform: scale(0.98); }
+    .onboarding-privacy {
+      font-size: 0.65rem; color: var(--text-soft);
+      margin-top: 14px; max-width: 280px; line-height: 1.5;
+    }
+
     @keyframes slideUp {
       from { transform: translateY(100%); opacity: 0; }
       to   { transform: translateY(0); opacity: 1; }
@@ -840,6 +920,34 @@
 </div>
 
 
+<!-- ONBOARDING -->
+<div class="onboarding" id="onboarding">
+  <div class="onboarding-logo">🌿</div>
+  <div class="onboarding-title">Soulful</div>
+  <div class="onboarding-sub" id="obSub">
+    Teman cerita AI yang hangat, aman, dan selalu ada untuk mendengarkan.
+  </div>
+  <div class="onboarding-question" id="obQuestion">Kamu masuk kategori mana?</div>
+  <div class="age-options">
+    <div class="age-btn" id="ageTeen" onclick="selectAge('teen')">
+      <span class="age-btn-emoji">🌱</span>
+      <span class="age-btn-label" id="obTeenLabel">Remaja</span>
+      <span class="age-btn-range">13 – 17</span>
+    </div>
+    <div class="age-btn" id="ageAdult" onclick="selectAge('adult')">
+      <span class="age-btn-emoji">🌿</span>
+      <span class="age-btn-label" id="obAdultLabel">Dewasa</span>
+      <span class="age-btn-range">18+</span>
+    </div>
+  </div>
+  <button class="onboarding-start-btn" id="obStartBtn" onclick="finishOnboarding()">
+    Mulai Cerita
+  </button>
+  <div class="onboarding-privacy" id="obPrivacy">
+    🔒 Pilihanmu disimpan di perangkat. Tidak ada data yang dikirim ke server.
+  </div>
+</div>
+
 <!-- CRISIS BANNER -->
 <div class="crisis-banner" id="crisisBanner">
   <div class="crisis-card">
@@ -1002,6 +1110,13 @@ Gunakan pendekatan CBT sederhana. Berikan teknik praktis: napas dalam, grounding
 Bahasa Indonesia yang hangat dan lembut. JANGAN mendiagnosis kondisi mental.
 Jika ada tanda bahaya, arahkan ke: Into The Light 119 ext 8.
 FORMAT: 2-3 paragraf pendek, akhiri dengan 1 pertanyaan reflektif.`,
+    systemPromptTeen: `Kamu adalah Soulful, AI teman curhat untuk remaja yang hangat dan empatik.
+Gunakan bahasa yang santai, ramah, dan mudah dipahami remaja. Hindari istilah psikologi yang berat.
+Validasi perasaan mereka terlebih dahulu — perasaan mereka valid dan penting.
+Berikan tips praktis yang relevan untuk remaja: manajemen stres sekolah, pertemanan, keluarga, identitas diri.
+JANGAN mendiagnosis. Jangan terdengar seperti orang tua atau guru yang menggurui.
+Jika ada tanda bahaya, segera arahkan ke: Into The Light 119 ext 8 atau cerita ke orang dewasa terpercaya.
+FORMAT: 2-3 paragraf pendek, bahasa gaul halus, akhiri dengan 1 pertanyaan reflektif yang ringan.`,
   },
   en: {
     headerSub: 'Your mental wellness companion',
@@ -1040,6 +1155,13 @@ Use simple CBT approaches. Provide practical techniques: deep breathing, groundi
 Use warm, gentle English. Do NOT diagnose any mental conditions.
 If there are danger signs, advise the user to seek professional help immediately.
 FORMAT: 2-3 short paragraphs, end with 1 reflective question.`,
+    systemPromptTeen: `You are Soulful, a warm and friendly AI companion for teenagers.
+Use casual, relatable language — speak like a caring older friend, not a therapist or parent.
+Always validate their feelings first — what they feel is real and important.
+Give practical tips relevant to teens: school stress, friendships, family, self-identity, social media pressure.
+Do NOT diagnose. Avoid heavy psychological jargon.
+If there are danger signs, encourage them to talk to a trusted adult or call a crisis line immediately.
+FORMAT: 2-3 short paragraphs, warm casual tone, end with 1 light reflective question.`,
   }
 };
 
@@ -1098,7 +1220,14 @@ window.onload = () => {
     document.getElementById('btnEN').classList.add('active');
   }
   applyLang();
-  setTimeout(() => addAI(T[lang].welcome, T[lang].welcomeQR), 400);
+
+  // Tampilkan onboarding kalau belum pernah pilih umur
+  if (!userAge) {
+    document.getElementById('onboarding').classList.add('open');
+    applyOnboardingLang();
+  } else {
+    setTimeout(() => addAI(T[lang].welcome, T[lang].welcomeQR), 400);
+  }
 };
 
 // ─── SEND (STREAMING) ────────────────────────────────────
@@ -1129,7 +1258,7 @@ async function send() {
         initData,
         userId,
         messages: [
-          { role: 'system', content: T[lang].systemPrompt },
+          { role: 'system', content: getSystemPrompt() },
           ...history
         ]
       })
@@ -1345,6 +1474,43 @@ function onType(el) {
 }
 function onKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+
+// ─── ONBOARDING & AGE ────────────────────────────────────
+let userAge = localStorage.getItem('soulful_age') || null; // 'teen' | 'adult'
+
+function getSystemPrompt() {
+  const t = T[lang];
+  return userAge === 'teen' ? t.systemPromptTeen : t.systemPrompt;
+}
+
+function selectAge(age) {
+  userAge = age;
+  document.getElementById('ageTeen').classList.toggle('selected', age === 'teen');
+  document.getElementById('ageAdult').classList.toggle('selected', age === 'adult');
+  document.getElementById('obStartBtn').classList.add('ready');
+}
+
+function finishOnboarding() {
+  if (!userAge) return;
+  localStorage.setItem('soulful_age', userAge);
+  document.getElementById('onboarding').classList.remove('open');
+  setTimeout(() => addAI(T[lang].welcome, T[lang].welcomeQR), 300);
+}
+
+function applyOnboardingLang() {
+  const isID = lang === 'id';
+  document.getElementById('obSub').textContent = isID
+    ? 'Teman cerita AI yang hangat, aman, dan selalu ada untuk mendengarkan.'
+    : 'A warm AI companion, always here to listen without judgment.';
+  document.getElementById('obQuestion').textContent = isID
+    ? 'Kamu masuk kategori mana?' : 'Which describes you?';
+  document.getElementById('obTeenLabel').textContent = isID ? 'Remaja' : 'Teen';
+  document.getElementById('obAdultLabel').textContent = isID ? 'Dewasa' : 'Adult';
+  document.getElementById('obStartBtn').textContent = isID ? 'Mulai Cerita' : 'Let\'s Start';
+  document.getElementById('obPrivacy').textContent = isID
+    ? '🔒 Pilihanmu disimpan di perangkat. Tidak ada data yang dikirim ke server.'
+    : '🔒 Your choice is saved on your device. No data is sent to the server.';
 }
 
 // ─── CRISIS DETECTION ────────────────────────────────────
@@ -1636,7 +1802,7 @@ function runPhase(phase, duration, onDone) {
   }, 1000);
 }
 
-// Update breath & tracker UI when language changes
+// Update breath & tracker & onboarding UI when language changes
 const _origApplyLang = applyLang;
 applyLang = function() {
   _origApplyLang();
@@ -1646,6 +1812,9 @@ applyLang = function() {
   if (document.getElementById('trackerOverlay').classList.contains('open')) {
     applyTrackerLang();
     renderCalendar();
+  }
+  if (document.getElementById('onboarding').classList.contains('open')) {
+    applyOnboardingLang();
   }
 };
 const SAWERIA_USERNAME = 'daksarasoulful';
