@@ -1,144 +1,140 @@
-# 🌿 Soulful
+# 🌿 Soulful — Teman Cerita & Kesehatan Mental
 
-> AI mental wellness companion for Telegram — free, private, and always available.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/daksaras/soulful)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-active-brightgreen)
+Soulful adalah AI companion kesehatan mental berbasis Telegram Mini App. Dibangun untuk menjadi teman bicara yang hangat, aman, dan selalu ada — gratis untuk semua orang.
 
 ---
 
-## ✨ Features
+## ✨ Fitur
 
-- 💬 **AI Chat** — Empathetic conversations powered by Groq (LLaMA 3.3 70B)
-- 🌍 **Bilingual** — Indonesian & English, switchable anytime
-- 📊 **Mood Tracker** — Log daily mood with 7-day emoji calendar
-- 🫁 **Breathing Exercise** — Interactive deep breathing with 3 patterns
-- 🆘 **Crisis Detection** — Auto-shows emergency hotline for at-risk messages
-- ☕ **Saweria Donation** — Built-in support button
-- 🌙 **Dark Mode** — Follows system preference automatically
-- 🔒 **Secure** — Telegram initData validation + Upstash Redis rate limiting
+- 💬 **Chat AI streaming** — respons real-time via Groq (LLaMA 3.3 70B)
+- 🌍 **Bilingual** — Indonesia & English, bisa ganti kapan saja
+- 👤 **Onboarding** — pilih profil Remaja (13–17) atau Dewasa (18+), sistem prompt menyesuaikan
+- 😰 **Mood chips** — shortcut topik: Cemas, Sedih, Burnout, Sulit Tidur, dll
+- 📊 **Mood Tracker harian** — catat mood + catatan, history 7 hari
+- 🫁 **Breathing exercise** — pola 4-4-4, 4-7-8, Box; animasi lingkaran
+- 🆘 **Crisis detection** — deteksi kata kunci krisis, tampilkan hotline Into The Light (119 ext 8)
+- 💾 **Chat history persist** — percakapan tersimpan di localStorage, tidak hilang saat reload
+- ☕ **Donasi via Saweria** — tombol langsung ke halaman Saweria
 
 ---
 
-## 🚀 Quick Start
+## 🗂️ Struktur Repo
 
-### 1. Clone & Setup
-
-```bash
-git clone https://github.com/daksaras/soulful.git
-cd soulful
+```
+soulful-app/
+├── api/
+│   └── chat.js          # Backend: proxy ke Groq, rate limit, validasi Telegram
+├── public/
+│   ├── index.html       # HTML (struktur UI)
+│   ├── style.css        # Semua styling + dark mode
+│   ├── app.js           # Core: chat, bahasa, history persist, crisis
+│   ├── mood.js          # Mood tracker
+│   ├── breath.js        # Breathing exercise
+│   └── donate.js        # Modal donasi Saweria
+├── .env.example
+├── vercel.json
+└── README.md
 ```
 
-### 2. Environment Variables
+---
 
-Copy `.env.example` and fill in your keys:
+## ⚙️ Setup
+
+### 1. Clone repo
+
+```bash
+git clone https://github.com/daksara/soulful-app.git
+cd soulful-app
+```
+
+### 2. Buat file `.env`
 
 ```bash
 cp .env.example .env
 ```
 
-| Variable | Description |
-|----------|-------------|
-| `GROQ_API_KEY` | Get from [console.groq.com](https://console.groq.com) |
-| `TELEGRAM_BOT_TOKEN` | Get from [@BotFather](https://t.me/BotFather) |
-| `UPSTASH_REDIS_REST_URL` | Get from [upstash.com](https://upstash.com) |
-| `UPSTASH_REDIS_REST_TOKEN` | Get from [upstash.com](https://upstash.com) |
+Isi variabel berikut:
 
-### 3. Deploy to Vercel
+```env
+GROQ_API_KEY=your_groq_api_key
+TELEGRAM_BOT_TOKEN=your_bot_token        # opsional, untuk validasi Mini App
+UPSTASH_REDIS_REST_URL=your_upstash_url  # opsional, untuk rate limit
+UPSTASH_REDIS_REST_TOKEN=your_upstash_token
+```
+
+### 3. Deploy ke Vercel
 
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
+npx vercel --prod
 ```
 
-Or click the **Deploy** button at the top of this README.
-
-### 4. Set Telegram Mini App
-
-1. Open [@BotFather](https://t.me/BotFather)
-2. `/mybots` → select your bot
-3. **Bot Settings → Menu Button** → set URL to your Vercel domain
+Atau hubungkan repo ke Vercel dashboard dan tambahkan environment variables di **Settings → Environment Variables**.
 
 ---
 
-## 📁 Project Structure
+## 🔑 Environment Variables
 
-```
-soulful/
-├── api/
-│   └── chat.js          # Serverless proxy — Groq API + rate limiting + validation
-├── public/
-│   └── index.html       # Frontend — all UI, logic, and styles in one file
-├── .github/
-│   └── ISSUE_TEMPLATE/  # Bug report & feature request templates
-├── .env.example         # Environment variable template
-├── .gitignore           # Git ignore rules
-├── CHANGELOG.md         # Version history
-├── CONTRIBUTING.md      # Contribution guide
-├── vercel.json          # Vercel routing config
-└── README.md            # This file
-```
+| Variable | Wajib | Keterangan |
+|---|---|---|
+| `GROQ_API_KEY` | ✅ | API key dari [console.groq.com](https://console.groq.com) |
+| `TELEGRAM_BOT_TOKEN` | ❌ | Untuk validasi `initData` Telegram Mini App |
+| `UPSTASH_REDIS_REST_URL` | ❌ | Rate limiting via Upstash Redis |
+| `UPSTASH_REDIS_REST_TOKEN` | ❌ | Token Upstash Redis |
+
+> Tanpa `TELEGRAM_BOT_TOKEN`, validasi dinonaktifkan dan rate limit fallback ke in-memory.
 
 ---
 
-## 🔒 Security
+## 🔒 Keamanan
 
-- **Telegram initData** validated server-side via HMAC-SHA256
-- **API key** never exposed to client — all calls go through `/api/chat`
-- **Rate limiting** via Upstash Redis — 10 requests/minute per user
-- **Input validation** — max 1000 chars, last 12 messages only sent to Groq
+- **Rate limit**: 10 request/menit per user (Upstash Redis atau in-memory fallback)
+- **Validasi Telegram**: HMAC-SHA256 pada `initData`, cek expiry 24 jam
+- **Input sanitasi**: max 1000 karakter per pesan, max 12 pesan per request
+- **API key**: disimpan di server (Vercel env), tidak pernah ke frontend
+
+---
+
+## 💾 Penyimpanan Data (Client)
+
+Semua data disimpan di `localStorage` pengguna — tidak ada data yang dikirim ke server selain pesan chat.
+
+| Key | Isi |
+|---|---|
+| `soulful_lang` | Bahasa dipilih (`id` / `en`) |
+| `soulful_age` | Profil user (`teen` / `adult`) |
+| `soulful_chat_history` | 30 pesan terakhir |
+| `soulful_mood_log` | Log mood harian (format YYYY-MM-DD) |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Vanilla HTML/CSS/JS (single file) |
-| AI | Groq API — LLaMA 3.3 70B |
-| Backend | Vercel Serverless Functions |
-| Rate Limit | Upstash Redis |
+| Layer | Teknologi |
+|---|---|
+| Frontend | HTML · CSS · Vanilla JS |
+| AI | [Groq](https://groq.com) — LLaMA 3.3 70B Versatile |
+| Hosting | [Vercel](https://vercel.com) |
+| Rate Limit | [Upstash Redis](https://upstash.com) |
 | Platform | Telegram Mini App |
 
 ---
 
-## 📝 Environment Setup (Vercel Dashboard)
+## ☕ Donasi
 
-Go to **Project → Settings → Environment Variables** and add:
+Soulful gratis dan open source. Kalau kamu merasa terbantu, traktir kopi di:
 
-```
-GROQ_API_KEY=gsk_...
-TELEGRAM_BOT_TOKEN=123456:ABC...
-UPSTASH_REDIS_REST_URL=https://...upstash.io
-UPSTASH_REDIS_REST_TOKEN=AX...
-```
-
----
-
-## 🤝 Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.  
-Found a bug? Open an [issue](../../issues/new?template=bug_report.md).
-
----
-
-## 📋 Changelog
-
-See [CHANGELOG.md](./CHANGELOG.md) for version history.
+**[saweria.co/daksarasoulful](https://saweria.co/daksarasoulful)**
 
 ---
 
 ## ⚠️ Disclaimer
 
-Soulful is an AI companion, **not a replacement for professional mental health care**.  
-If you are in crisis, please contact **Into The Light Indonesia: 119 ext 8** (free, 24/7).
+Soulful adalah teman bicara AI, **bukan pengganti psikolog atau tenaga kesehatan mental profesional**. Jika kamu dalam kondisi krisis, segera hubungi:
+
+- **Into The Light Indonesia**: 119 ext 8 (Gratis, 24 jam)
 
 ---
 
-## 📄 License
+## 📄 Lisensi
 
-MIT © [Daksara](https://github.com/daksaras)
+MIT License — bebas digunakan dan dimodifikasi dengan tetap mencantumkan kredit.
