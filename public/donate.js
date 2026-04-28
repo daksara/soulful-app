@@ -5,16 +5,8 @@
 const SAWERIA_USERNAME = 'daksarasoulful';
 let selectedAmount = 5000;
 
-function selectAmount(el, amount) {
-  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedAmount = amount;
-}
-
 function goSaweria() {
-  const url = selectedAmount > 0
-    ? `https://saweria.co/${SAWERIA_USERNAME}?amount=${selectedAmount}`
-    : `https://saweria.co/${SAWERIA_USERNAME}`;
+  const url = `https://saweria.co/${SAWERIA_USERNAME}`;
   if (window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(url);
   else window.open(url, '_blank');
   closeModal();
