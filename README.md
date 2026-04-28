@@ -1,36 +1,45 @@
-# 🌿 Soulful — Teman Cerita & Kesehatan Mental
+# Soulful
 
-Soulful adalah AI companion kesehatan mental berbasis Telegram Mini App. Dibangun untuk menjadi teman bicara yang hangat, aman, dan selalu ada — gratis untuk semua orang.
-
----
-
-## ✨ Fitur
-
-- 💬 **Chat AI streaming** — respons real-time via Groq (LLaMA 3.3 70B)
-- 🌍 **Bilingual** — Indonesia & English, bisa ganti kapan saja
-- 👤 **Onboarding** — pilih profil Remaja (13–17) atau Dewasa (18+), sistem prompt menyesuaikan
-- 😰 **Mood chips** — shortcut topik: Cemas, Sedih, Burnout, Sulit Tidur, dll
-- 📊 **Mood Tracker harian** — catat mood + catatan, history 7 hari
-- 🫁 **Breathing exercise** — pola 4-4-4, 4-7-8, Box; animasi lingkaran
-- 🆘 **Crisis detection** — deteksi kata kunci krisis, tampilkan hotline Into The Light (119 ext 8)
-- 💾 **Chat history persist** — percakapan tersimpan di localStorage, tidak hilang saat reload
-- ☕ **Donasi via Saweria** — tombol langsung ke halaman Saweria
+A warm, judgment-free AI mental wellness companion built as a Telegram Mini App. Soulful listens, validates, and supports — available to everyone, for free.
 
 ---
 
-## 🗂️ Struktur Repo
+## Features
+
+**Conversation**
+- Real-time streaming chat powered by Groq (LLaMA 3.3 70B)
+- Bilingual support — Indonesian and English, switchable at any time
+- Age-aware onboarding — Teen (13–17) or Adult (18+) profiles with tailored system prompts
+- Mood chips for quick topic shortcuts (anxiety, burnout, loneliness, and more)
+- Context-aware quick replies after each response
+
+**Wellness Tools**
+- Daily mood tracker with emoji scale and 7-day calendar history
+- Guided breathing exercises — 4-4-4, 4-7-8, and Box patterns with animated ring
+
+**Safety**
+- Keyword-based crisis detection with immediate display of emergency hotline (Into The Light — 119 ext 8)
+- Haptic feedback on crisis trigger (Telegram)
+
+**Persistence**
+- Chat history saved to localStorage — conversations resume across sessions
+- All user data stays on-device; nothing is sent to the server except chat messages
+
+---
+
+## Project Structure
 
 ```
 soulful-app/
 ├── api/
-│   └── chat.js          # Backend: proxy ke Groq, rate limit, validasi Telegram
+│   └── chat.js        # Groq proxy, rate limiting, Telegram initData validation
 ├── public/
-│   ├── index.html       # HTML (struktur UI)
-│   ├── style.css        # Semua styling + dark mode
-│   ├── app.js           # Core: chat, bahasa, history persist, crisis
-│   ├── mood.js          # Mood tracker
-│   ├── breath.js        # Breathing exercise
-│   └── donate.js        # Modal donasi Saweria
+│   ├── index.html     # Markup
+│   ├── style.css      # Styles and dark mode
+│   ├── app.js         # Core: chat, language, history, crisis detection
+│   ├── mood.js        # Mood tracker
+│   ├── breath.js      # Breathing exercise
+│   └── donate.js      # Saweria donation modal
 ├── .env.example
 ├── vercel.json
 └── README.md
@@ -38,103 +47,90 @@ soulful-app/
 
 ---
 
-## ⚙️ Setup
+## Getting Started
 
-### 1. Clone repo
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/daksara/soulful-app.git
 cd soulful-app
 ```
 
-### 2. Buat file `.env`
+### 2. Configure environment variables
 
 ```bash
 cp .env.example .env
 ```
 
-Isi variabel berikut:
+| Variable | Required | Description |
+|---|---|---|
+| `GROQ_API_KEY` | Yes | API key from [console.groq.com](https://console.groq.com) |
+| `TELEGRAM_BOT_TOKEN` | No | Enables Telegram `initData` validation |
+| `UPSTASH_REDIS_REST_URL` | No | Redis-backed rate limiting |
+| `UPSTASH_REDIS_REST_TOKEN` | No | Upstash Redis token |
 
-```env
-GROQ_API_KEY=your_groq_api_key
-TELEGRAM_BOT_TOKEN=your_bot_token        # opsional, untuk validasi Mini App
-UPSTASH_REDIS_REST_URL=your_upstash_url  # opsional, untuk rate limit
-UPSTASH_REDIS_REST_TOKEN=your_upstash_token
-```
+> Without `TELEGRAM_BOT_TOKEN`, initData validation is skipped and rate limiting falls back to in-memory.
 
-### 3. Deploy ke Vercel
+### 3. Deploy to Vercel
 
 ```bash
 npx vercel --prod
 ```
 
-Atau hubungkan repo ke Vercel dashboard dan tambahkan environment variables di **Settings → Environment Variables**.
+Or connect the repository to your Vercel dashboard and add the environment variables under **Settings → Environment Variables**.
 
 ---
 
-## 🔑 Environment Variables
+## Security
 
-| Variable | Wajib | Keterangan |
-|---|---|---|
-| `GROQ_API_KEY` | ✅ | API key dari [console.groq.com](https://console.groq.com) |
-| `TELEGRAM_BOT_TOKEN` | ❌ | Untuk validasi `initData` Telegram Mini App |
-| `UPSTASH_REDIS_REST_URL` | ❌ | Rate limiting via Upstash Redis |
-| `UPSTASH_REDIS_REST_TOKEN` | ❌ | Token Upstash Redis |
-
-> Tanpa `TELEGRAM_BOT_TOKEN`, validasi dinonaktifkan dan rate limit fallback ke in-memory.
+- **Rate limiting** — 10 requests per minute per user, via Upstash Redis with in-memory fallback
+- **Telegram validation** — HMAC-SHA256 verification of `initData` with 24-hour expiry check
+- **Input validation** — messages capped at 1,000 characters; last 12 messages sent per request
+- **Secret management** — API keys are server-side only; never exposed to the client
 
 ---
 
-## 🔒 Keamanan
+## Client-Side Storage
 
-- **Rate limit**: 10 request/menit per user (Upstash Redis atau in-memory fallback)
-- **Validasi Telegram**: HMAC-SHA256 pada `initData`, cek expiry 24 jam
-- **Input sanitasi**: max 1000 karakter per pesan, max 12 pesan per request
-- **API key**: disimpan di server (Vercel env), tidak pernah ke frontend
+All data is stored in the user's `localStorage`. No personal data is transmitted to any server.
 
----
-
-## 💾 Penyimpanan Data (Client)
-
-Semua data disimpan di `localStorage` pengguna — tidak ada data yang dikirim ke server selain pesan chat.
-
-| Key | Isi |
+| Key | Contents |
 |---|---|
-| `soulful_lang` | Bahasa dipilih (`id` / `en`) |
-| `soulful_age` | Profil user (`teen` / `adult`) |
-| `soulful_chat_history` | 30 pesan terakhir |
-| `soulful_mood_log` | Log mood harian (format YYYY-MM-DD) |
+| `soulful_lang` | Selected language (`id` / `en`) |
+| `soulful_age` | User profile (`teen` / `adult`) |
+| `soulful_chat_history` | Last 30 messages |
+| `soulful_mood_log` | Daily mood entries (keyed by `YYYY-MM-DD`) |
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-| Layer | Teknologi |
+| Layer | Technology |
 |---|---|
-| Frontend | HTML · CSS · Vanilla JS |
-| AI | [Groq](https://groq.com) — LLaMA 3.3 70B Versatile |
-| Hosting | [Vercel](https://vercel.com) |
-| Rate Limit | [Upstash Redis](https://upstash.com) |
+| Frontend | HTML, CSS, Vanilla JS |
+| AI | Groq — LLaMA 3.3 70B Versatile |
+| Hosting | Vercel |
+| Rate Limiting | Upstash Redis |
 | Platform | Telegram Mini App |
 
 ---
 
-## ☕ Donasi
+## Disclaimer
 
-Soulful gratis dan open source. Kalau kamu merasa terbantu, traktir kopi di:
+Soulful is an AI companion and is **not a substitute for professional mental health care**. If you or someone you know is in crisis, please reach out to a qualified professional or contact a crisis line immediately.
 
-**[saweria.co/daksarasoulful](https://saweria.co/daksarasoulful)**
-
----
-
-## ⚠️ Disclaimer
-
-Soulful adalah teman bicara AI, **bukan pengganti psikolog atau tenaga kesehatan mental profesional**. Jika kamu dalam kondisi krisis, segera hubungi:
-
-- **Into The Light Indonesia**: 119 ext 8 (Gratis, 24 jam)
+- **Into The Light Indonesia** — 119 ext 8 (free, 24/7)
 
 ---
 
-## 📄 Lisensi
+## Support
 
-MIT License — bebas digunakan dan dimodifikasi dengan tetap mencantumkan kredit.
+If Soulful has been helpful to you, consider supporting its development:
+
+[saweria.co/daksarasoulful](https://saweria.co/daksarasoulful)
+
+---
+
+## License
+
+MIT — free to use and modify with attribution.
